@@ -5,6 +5,7 @@ import axios, {
 } from 'axios'
 
 let accessToken: string | null = null
+let unauthorizedHandler: (() => void) | null = null
 
 type RetriableRequestConfig = InternalAxiosRequestConfig & {
   _retry?: boolean
@@ -16,6 +17,11 @@ type QueueEntry = {
   reject: (reason?: unknown) => void
 }
 
+type RefreshResponseLike = {
+  access_token?: string
+  accessToken?: string
+}
+
 export const tokenStore = {
   get: () => accessToken,
   set: (token: string) => {
@@ -24,6 +30,10 @@ export const tokenStore = {
   clear: () => {
     accessToken = null
   },
+}
+
+export const setUnauthorizedHandler = (handler: (() => void) | null): void => {
+  unauthorizedHandler = handler
 }
 
 export const client = axios.create({
@@ -73,6 +83,16 @@ const rejectQueue = (error: unknown): void => {
   queue = []
 }
 
+const getTokenFromRefresh = (data: RefreshResponseLike): string => {
+  const token = data.access_token ?? data.accessToken
+
+  if (!token) {
+    throw new Error('No se recibio token de refresh.')
+  }
+
+  return token
+}
+
 client.interceptors.response.use(
   (response) => response,
   async (error: AxiosError) => {
@@ -97,8 +117,8 @@ client.interceptors.response.use(
       isRefreshing = true
 
       try {
-        const { data } = await client.post<{ accessToken: string }>('/auth/refresh')
-        const newToken = data.accessToken
+        const { data } = await client.post<RefreshResponseLike>('/auth/refresh')
+        const newToken = getTokenFromRefresh(data)
 
         tokenStore.set(newToken)
 
@@ -107,8 +127,13 @@ client.interceptors.response.use(
         setAuthorizationHeader(originalRequest, newToken)
         return client(originalRequest)
       } catch (refreshError) {
+        tokenStore.clear()
         rejectQueue(refreshError)
-        window.location.href = '/login'
+
+        if (unauthorizedHandler) {
+          unauthorizedHandler()
+        }
+
         return Promise.reject(refreshError)
       } finally {
         isRefreshing = false

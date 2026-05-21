@@ -1,15 +1,25 @@
 
 import { useEffect, useState } from 'react'
 
-import { initializeAuth } from './lib/api/auth.service'
+import { QueryClientProvider } from '@tanstack/react-query'
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
+import { RouterProvider } from '@tanstack/react-router'
 
-import './App.css'
+import { queryClient } from './lib/query-client'
+import { initializeAuth } from './lib/api/auth.service'
+import { setUnauthorizedHandler } from './lib/api/client'
+import { AppLoadingPage } from './pages/shared/app-loading-page'
+import { router } from './router'
 
 function App() {
   const [isInitializing, setIsInitializing] = useState(true)
 
   useEffect(() => {
     let isMounted = true
+
+    setUnauthorizedHandler(() => {
+      void router.navigate({ to: '/login' })
+    })
 
     const bootstrapAuth = async (): Promise<void> => {
       await initializeAuth()
@@ -22,16 +32,20 @@ function App() {
     void bootstrapAuth()
 
     return () => {
+      setUnauthorizedHandler(null)
       isMounted = false
     }
   }, [])
 
+  if (isInitializing) {
+    return <AppLoadingPage />
+  }
+
   return (
-    <>
-      <div className="text-3xl font-bold underline">
-        {isInitializing ? 'inicializando sesión...' : 'holaa mundo'}
-      </div>
-    </>
+    <QueryClientProvider client={queryClient}>
+      <RouterProvider router={router} />
+      <ReactQueryDevtools initialIsOpen={false} />
+    </QueryClientProvider>
   )
 }
 
