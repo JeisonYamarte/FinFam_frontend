@@ -5,7 +5,7 @@ import { cn } from '@/lib/utils'
 export const Card = ({ className, ...props }: HTMLAttributes<HTMLDivElement>) => (
   <div
     className={cn(
-      'rounded-3xl border border-zinc-200 bg-white/90 p-6 shadow-lg shadow-zinc-900/5 backdrop-blur-sm sm:p-8',
+      'rounded-3xl border border-border bg-card/95 p-6 text-card-foreground shadow-lg shadow-black/20 backdrop-blur-sm sm:p-8',
       className,
     )}
     {...props}
@@ -23,14 +23,14 @@ export const CardTitle = ({
   className,
   ...props
 }: HTMLAttributes<HTMLHeadingElement>) => (
-  <h1 className={cn('text-2xl font-semibold tracking-tight text-zinc-900', className)} {...props} />
+  <h1 className={cn('text-2xl font-semibold tracking-tight text-foreground', className)} {...props} />
 )
 
 export const CardDescription = ({
   className,
   ...props
 }: HTMLAttributes<HTMLParagraphElement>) => (
-  <p className={cn('text-sm text-zinc-600', className)} {...props} />
+  <p className={cn('text-sm text-muted-foreground', className)} {...props} />
 )
 
 export const CardContent = ({

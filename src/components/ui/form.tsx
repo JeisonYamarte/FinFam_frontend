@@ -86,7 +86,7 @@ const FormLabel = React.forwardRef<React.ElementRef<typeof Label>, React.Compone
     return (
       <Label
         ref={ref}
-        className={cn(error && 'text-rose-600', className)}
+        className={cn(error && 'text-destructive', className)}
         htmlFor={formItemId}
         {...props}
       />
@@ -119,7 +119,7 @@ const FormDescription = React.forwardRef<HTMLParagraphElement, React.HTMLAttribu
     const { formDescriptionId } = useFormField()
 
     return (
-      <p ref={ref} className={cn('text-sm text-zinc-500', className)} id={formDescriptionId} {...props} />
+      <p ref={ref} className={cn('text-sm text-muted-foreground', className)} id={formDescriptionId} {...props} />
     )
   },
 )
@@ -138,7 +138,7 @@ const FormMessage = React.forwardRef<HTMLParagraphElement, React.HTMLAttributes<
     return (
       <p
         ref={ref}
-        className={cn('text-xs text-rose-600', className)}
+        className={cn('text-xs text-destructive', className)}
         id={formMessageId}
         {...props}
       >

@@ -85,7 +85,7 @@ export const LoginPage = () => {
 
           <div className="flex justify-end">
             <Link
-              className="text-sm font-medium text-teal-700 transition-colors hover:text-teal-600"
+              className="text-sm font-medium text-primary transition-colors hover:text-primary/80"
               to="/forgot-password"
             >
               Olvide mi contrasena

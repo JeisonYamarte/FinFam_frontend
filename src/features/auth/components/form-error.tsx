@@ -10,7 +10,7 @@ export const FormError = ({ message }: FormErrorProps) => {
   }
 
   return (
-    <p className="mt-1 inline-flex items-center gap-1.5 text-xs text-rose-600">
+    <p className="mt-1 inline-flex items-center gap-1.5 text-xs text-destructive">
       <ExclamationCircleIcon className="size-4" />
       <span>{message}</span>
     </p>

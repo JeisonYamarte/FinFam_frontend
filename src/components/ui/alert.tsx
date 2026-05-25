@@ -7,9 +7,9 @@ type AlertProps = HTMLAttributes<HTMLDivElement> & {
 }
 
 const toneByVariant: Record<NonNullable<AlertProps['variant']>, string> = {
-  error: 'border-rose-200 bg-rose-50 text-rose-700',
-  success: 'border-emerald-200 bg-emerald-50 text-emerald-700',
-  info: 'border-sky-200 bg-sky-50 text-sky-700',
+  error: 'border-destructive/40 bg-destructive/15 text-destructive',
+  success: 'border-success/40 bg-success/15 text-success',
+  info: 'border-info/40 bg-info/15 text-info',
 }
 
 export const Alert = ({

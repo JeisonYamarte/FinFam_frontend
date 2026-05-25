@@ -56,9 +56,9 @@ export const VerifyEmailPage = ({ token }: VerifyEmailPageProps) => {
     >
       <div className="space-y-4">
         {query.isSuccess ? (
-          <CheckCircleIcon className="mx-auto size-12 text-emerald-600" />
+          <CheckCircleIcon className="mx-auto size-12 text-success" />
         ) : (
-          <XCircleIcon className="mx-auto size-12 text-zinc-400" />
+          <XCircleIcon className="mx-auto size-12 text-muted-foreground" />
         )}
 
         {content}

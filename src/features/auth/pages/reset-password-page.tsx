@@ -3,8 +3,8 @@ import { useMutation } from '@tanstack/react-query'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 
+import { Button } from '@/components/ui/button'
 import { Alert } from '../../../components/ui/alert'
-import { Button } from '../../../components/ui/button'
 import {
   Form,
   FormControl,
@@ -129,8 +129,8 @@ export const ResetPasswordPage = ({ token }: ResetPasswordPageProps) => {
         </form>
       </Form>
 
-      <p className="mt-4 text-center text-sm text-zinc-600">
-        <Link className="font-semibold text-teal-700 hover:text-teal-600" to="/login">
+      <p className="mt-4 text-center text-sm text-muted-foreground">
+        <Link className="font-semibold text-primary hover:text-primary/80" to="/login">
           Volver a iniciar sesion
         </Link>
       </p>

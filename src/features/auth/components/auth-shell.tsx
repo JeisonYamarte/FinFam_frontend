@@ -34,10 +34,10 @@ export const AuthShell = ({
       </CardHeader>
       <CardContent>{children}</CardContent>
       {footerText && footerLinkText && footerLinkTo ? (
-        <div className="border-t border-zinc-100 px-6 py-5 text-sm text-zinc-600 sm:px-8">
+        <div className="border-t border-border px-6 py-5 text-sm text-muted-foreground sm:px-8">
           {footerText}{' '}
           <Link
-            className="font-semibold text-teal-700 transition-colors hover:text-teal-600"
+            className="font-semibold text-primary transition-colors hover:text-primary/80"
             to={footerLinkTo}
           >
             {footerLinkText}

@@ -35,11 +35,11 @@ export const DashboardPage = () => {
           {isLoading ? (
             <Alert variant="info">Cargando informacion de tu sesion...</Alert>
           ) : (
-            <div className="space-y-2 text-sm text-zinc-700">
+            <div className="space-y-2 text-sm text-foreground">
               <p>
                 Hola, <span className="font-semibold">{currentUser?.firstName ?? 'Usuario'}</span>
               </p>
-              <p className="text-zinc-500">{currentUser?.email}</p>
+              <p className="text-muted-foreground">{currentUser?.email}</p>
             </div>
           )}
         </CardContent>

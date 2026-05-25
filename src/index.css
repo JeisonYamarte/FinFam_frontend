@@ -1,12 +1,66 @@
 @import "tailwindcss";
 
 :root {
+	--background: #080d17;
+	--foreground: #e6edf7;
+	--card: #101826;
+	--card-foreground: #e6edf7;
+	--popover: #121c2b;
+	--popover-foreground: #e6edf7;
+	--primary: #14b8a6;
+	--primary-foreground: #04221e;
+	--secondary: #1a2638;
+	--secondary-foreground: #d6e2f2;
+	--muted: #1a2435;
+	--muted-foreground: #98a8bf;
+	--accent: #1d2d44;
+	--accent-foreground: #e6edf7;
+	--destructive: #ef4444;
+	--destructive-foreground: #200607;
+	--success: #22c55e;
+	--success-foreground: #07210f;
+	--info: #38bdf8;
+	--info-foreground: #031a2a;
+	--border: #243247;
+	--input: #2b3a50;
+	--ring: #14b8a6;
+	--radius: 0.625rem;
+
 	font-family: "Plus Jakarta Sans", "Segoe UI", sans-serif;
-	color: #111827;
-	background-color: #f8fafc;
+	color: var(--foreground);
+	background-color: var(--background);
 	text-rendering: geometricPrecision;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
+}
+
+@theme inline {
+	--color-background: var(--background);
+	--color-foreground: var(--foreground);
+	--color-card: var(--card);
+	--color-card-foreground: var(--card-foreground);
+	--color-popover: var(--popover);
+	--color-popover-foreground: var(--popover-foreground);
+	--color-primary: var(--primary);
+	--color-primary-foreground: var(--primary-foreground);
+	--color-secondary: var(--secondary);
+	--color-secondary-foreground: var(--secondary-foreground);
+	--color-muted: var(--muted);
+	--color-muted-foreground: var(--muted-foreground);
+	--color-accent: var(--accent);
+	--color-accent-foreground: var(--accent-foreground);
+	--color-destructive: var(--destructive);
+	--color-destructive-foreground: var(--destructive-foreground);
+	--color-success: var(--success);
+	--color-success-foreground: var(--success-foreground);
+	--color-info: var(--info);
+	--color-info-foreground: var(--info-foreground);
+	--color-border: var(--border);
+	--color-input: var(--input);
+	--color-ring: var(--ring);
+	--radius-sm: calc(var(--radius) - 4px);
+	--radius-md: calc(var(--radius) - 2px);
+	--radius-lg: var(--radius);
 }
 
 * {
@@ -16,4 +70,6 @@
 body {
 	margin: 0;
 	min-width: 320px;
+	background-color: var(--background);
+	color: var(--foreground);
 }

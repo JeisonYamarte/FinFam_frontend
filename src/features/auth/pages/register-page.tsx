@@ -3,9 +3,9 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 
+import { DatePicker } from '@/components/ui/date-picker'
 import { Alert } from '../../../components/ui/alert'
 import { Button } from '../../../components/ui/button'
-import { DatePicker } from '../../../components/ui/date-picker'
 import {
   Form,
   FormControl,
@@ -168,7 +168,7 @@ export const RegisterPage = () => {
         </form>
       </Form>
 
-      <p className="mt-4 text-xs text-zinc-500">
+      <p className="mt-4 text-xs text-muted-foreground">
         Al registrarte, aceptas nuestros terminos y politicas de privacidad.
       </p>
     </AuthShell>
