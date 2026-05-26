@@ -3,8 +3,8 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 
-import { Alert } from '../../../components/ui/alert'
-import { Button } from '../../../components/ui/button'
+import { Alert } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
 import {
   Form,
   FormControl,
@@ -12,12 +12,12 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '../../../components/ui/form'
-import { Input } from '../../../components/ui/input'
-import { CURRENT_USER_QUERY_KEY } from '../../../hooks/useCurrentUser'
-import { loginSchema, type LoginSchema } from '../schemas/auth.schemas'
-import { getErrorMessage } from '../services/error-message'
-import { login } from '../services/auth-api.service'
+} from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { CURRENT_USER_QUERY_KEY } from '../hooks/use-current-user'
+import { loginSchema, type LoginSchema } from '../../domain/auth.schemas'
+import { getErrorMessage } from '../utils/error-message'
+import { login } from '../../infrastructure/api-auth.repository'
 import { AuthShell } from '../components/auth-shell'
 import { PasswordField } from '../components/password-field'
 

@@ -4,11 +4,11 @@ import { CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/outline'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 
-import { Alert } from '../../../components/ui/alert'
-import { Button } from '../../../components/ui/button'
+import { Alert } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
 import { AuthShell } from '../components/auth-shell'
-import { getErrorMessage } from '../services/error-message'
-import { verifyEmail } from '../services/auth-api.service'
+import { getErrorMessage } from '../utils/error-message'
+import { verifyEmail } from '../../infrastructure/api-auth.repository'
 
 type VerifyEmailPageProps = {
   token?: string

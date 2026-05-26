@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-import type { ApiError } from '../../../lib/api/types'
+import type { ApiError } from '@/shared/domain/types/api.types'
 
 type StatusMessageMap = Partial<Record<number, string>>
 

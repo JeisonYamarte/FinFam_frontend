@@ -1,8 +1,8 @@
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline'
 import * as React from 'react'
 
-import { Button } from '../../../components/ui/button'
-import { Input } from '../../../components/ui/input'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
 
 type PasswordFieldProps = React.InputHTMLAttributes<HTMLInputElement>

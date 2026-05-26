@@ -70,6 +70,11 @@
       "source": "pproenca/dot-skills",
       "sourceType": "autoskills-registry",
       "computedHash": "aa8a97195b07763d37494b511f48be90979fd6826c031956c831cfc58f6a24b8"
+    },
+    "hexagonal-architecture": {
+      "source": "local",
+      "sourceType": "local",
+      "computedHash": "finfam-hexagonal-architecture-v1"
     }
   }
 }

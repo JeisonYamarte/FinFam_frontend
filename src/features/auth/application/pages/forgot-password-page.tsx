@@ -2,8 +2,8 @@ import { useMutation } from '@tanstack/react-query'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 
-import { Alert } from '../../../components/ui/alert'
-import { Button } from '../../../components/ui/button'
+import { Alert } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
 import {
   Form,
   FormControl,
@@ -11,15 +11,15 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '../../../components/ui/form'
-import { Input } from '../../../components/ui/input'
+} from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
 import { AuthShell } from '../components/auth-shell'
 import {
   forgotPasswordSchema,
   type ForgotPasswordSchema,
-} from '../schemas/auth.schemas'
-import { forgotPassword } from '../services/auth-api.service'
-import { getErrorMessage } from '../services/error-message'
+} from '../../domain/auth.schemas'
+import { forgotPassword } from '../../infrastructure/api-auth.repository'
+import { getErrorMessage } from '../utils/error-message'
 
 export const ForgotPasswordPage = () => {
   const form = useForm<ForgotPasswordSchema>({

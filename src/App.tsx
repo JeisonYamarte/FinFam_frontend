@@ -6,9 +6,9 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { RouterProvider } from '@tanstack/react-router'
 
 import { queryClient } from './lib/query-client'
-import { initializeAuth } from './lib/api/auth.service'
-import { setUnauthorizedHandler } from './lib/api/client'
-import { AppLoadingPage } from './pages/shared/app-loading-page'
+import { initializeAuth } from '@/shared/infrastructure/http/auth-http.service'
+import { setUnauthorizedHandler } from '@/shared/infrastructure/http/client'
+import { AppLoadingPage } from '@/shared/application/pages/app-loading-page'
 import { router } from './router'
 
 function App() {

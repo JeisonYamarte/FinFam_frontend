@@ -1,11 +1,11 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 
-import { AppLayout } from '../../components/layout/app-layout'
+import { AppLayout } from '@/shared/application/components/layout/app-layout'
 import { Alert } from '../../components/ui/alert'
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card'
-import { useCurrentUser } from '../../hooks/useCurrentUser'
-import { logout } from '../../features/auth/services/auth-api.service'
+import { useCurrentUser } from '@/features/auth/application/hooks/use-current-user'
+import { logout } from '@/features/auth/infrastructure/api-auth.repository'
 
 export const DashboardPage = () => {
   const navigate = useNavigate()

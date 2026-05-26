@@ -7,15 +7,15 @@ import {
 } from '@tanstack/react-router'
 import { z } from 'zod'
 
-import { AuthLayout } from '../components/layout/auth-layout'
-import { tokenStore } from '../lib/api/client'
-import { ForgotPasswordPage } from '../features/auth/pages/forgot-password-page'
-import { LoginPage } from '../features/auth/pages/login-page'
-import { RegisterPage } from '../features/auth/pages/register-page'
-import { ResetPasswordPage } from '../features/auth/pages/reset-password-page'
-import { VerifyEmailPage } from '../features/auth/pages/verify-email-page'
+import { AuthLayout } from '@/shared/application/components/layout/auth-layout'
+import { tokenStore } from '@/shared/infrastructure/http/client'
+import { ForgotPasswordPage } from '@/features/auth/application/pages/forgot-password-page'
+import { LoginPage } from '@/features/auth/application/pages/login-page'
+import { RegisterPage } from '@/features/auth/application/pages/register-page'
+import { ResetPasswordPage } from '@/features/auth/application/pages/reset-password-page'
+import { VerifyEmailPage } from '@/features/auth/application/pages/verify-email-page'
 import { DashboardPage } from '../pages/app/dashboard-page'
-import { NotFoundPage } from '../pages/shared/not-found-page'
+import { NotFoundPage } from '@/shared/application/pages/not-found-page'
 
 const rootRoute = createRootRoute({
   component: Outlet,
@@ -53,6 +53,12 @@ const publicRoute = createRoute({
   component: AuthLayout,
 })
 
+const tokenActionRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  id: 'token-action',
+  component: AuthLayout,
+})
+
 const loginRoute = createRoute({
   getParentRoute: () => publicRoute,
   path: '/login',
@@ -76,7 +82,7 @@ const resetPasswordSearchSchema = z.object({
 })
 
 const resetPasswordRoute = createRoute({
-  getParentRoute: () => publicRoute,
+  getParentRoute: () => tokenActionRoute,
   path: '/reset-password',
   validateSearch: (search) => resetPasswordSearchSchema.parse(search),
   component: () => {
@@ -90,7 +96,7 @@ const verifyEmailSearchSchema = z.object({
 })
 
 const verifyEmailRoute = createRoute({
-  getParentRoute: () => publicRoute,
+  getParentRoute: () => tokenActionRoute,
   path: '/verify-email',
   validateSearch: (search) => verifyEmailSearchSchema.parse(search),
   component: () => {
@@ -118,9 +124,8 @@ const routeTree = rootRoute.addChildren([
     loginRoute,
     registerRoute,
     forgotPasswordRoute,
-    resetPasswordRoute,
-    verifyEmailRoute,
   ]),
+  tokenActionRoute.addChildren([resetPasswordRoute, verifyEmailRoute]),
   protectedRoute.addChildren([dashboardRoute]),
 ])
 

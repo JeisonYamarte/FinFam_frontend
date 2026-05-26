@@ -64,10 +64,10 @@ export const forgotPasswordSchema = z.object({
 export const resetPasswordSchema = z
   .object({
     token: z.string().min(1, 'Token requerido'),
-    password,
+    newPassword: password,
     confirmPassword: z.string(),
   })
-  .refine((values) => values.password === values.confirmPassword, {
+  .refine((values) => values.newPassword === values.confirmPassword, {
     path: ['confirmPassword'],
     message: 'Las contrasenas no coinciden',
   })

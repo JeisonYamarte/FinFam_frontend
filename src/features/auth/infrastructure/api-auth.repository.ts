@@ -1,35 +1,16 @@
-import { client, tokenStore } from '../../../lib/api/client'
-
-type AuthTokenResponse = {
-  access_token?: string
-  accessToken?: string
-  token?: string
-}
+import { client, tokenStore } from '@/shared/infrastructure/http/client'
+import type { ApiResponse } from '@/shared/domain/types/api.types'
+import type {
+  CurrentUser,
+  AuthTokenResponse,
+  LoginPayload,
+  RegisterPayload,
+  ForgotPasswordPayload,
+  ResetPasswordPayload,
+} from '../domain/Auth.entity'
 
 type AuthMessageResponse = {
   message?: string
-}
-
-type LoginPayload = {
-  email: string
-  password: string
-}
-
-type RegisterPayload = {
-  name: string
-  lastName: string
-  email: string
-  birthDate: string
-  password: string
-}
-
-type ForgotPasswordPayload = {
-  email: string
-}
-
-type ResetPasswordPayload = {
-  token: string
-  password: string
 }
 
 const getTokenFromResponse = (data: AuthTokenResponse): string => {
@@ -47,14 +28,17 @@ export const login = async (payload: LoginPayload): Promise<void> => {
   tokenStore.set(getTokenFromResponse(data))
 }
 
+export const getCurrentUser = async (): Promise<CurrentUser> => {
+  const { data } = await client.get<ApiResponse<CurrentUser>>('/auth/me')
+  return data.data
+}
+
 export const register = async (payload: RegisterPayload): Promise<void> => {
   const { data } = await client.post<AuthTokenResponse>('/auth/register', payload)
   tokenStore.set(getTokenFromResponse(data))
 }
 
-export const forgotPassword = async (
-  payload: ForgotPasswordPayload,
-): Promise<string> => {
+export const forgotPassword = async (payload: ForgotPasswordPayload): Promise<string> => {
   await client.post<AuthMessageResponse>('/auth/forgot-password', payload)
   return 'Si el correo existe, recibiras instrucciones pronto.'
 }

@@ -1,6 +1,6 @@
 import { Link } from '@tanstack/react-router'
 
-import { Button } from '../../components/ui/button'
+import { Button } from '@/components/ui/button'
 
 export const NotFoundPage = () => (
   <main className="flex min-h-screen items-center justify-center bg-background px-4">

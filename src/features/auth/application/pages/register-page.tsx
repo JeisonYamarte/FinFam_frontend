@@ -4,8 +4,8 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 
 import { DatePicker } from '@/components/ui/date-picker'
-import { Alert } from '../../../components/ui/alert'
-import { Button } from '../../../components/ui/button'
+import { Alert } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
 import {
   Form,
   FormControl,
@@ -13,14 +13,14 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '../../../components/ui/form'
-import { Input } from '../../../components/ui/input'
-import { CURRENT_USER_QUERY_KEY } from '../../../hooks/useCurrentUser'
+} from '@/components/ui/form'
+import { Input } from '@/components/ui/input'
+import { CURRENT_USER_QUERY_KEY } from '../hooks/use-current-user'
 import { AuthShell } from '../components/auth-shell'
 import { PasswordField } from '../components/password-field'
-import { registerSchema, type RegisterSchema } from '../schemas/auth.schemas'
-import { register as registerUser } from '../services/auth-api.service'
-import { getErrorMessage } from '../services/error-message'
+import { registerSchema, type RegisterSchema } from '../../domain/auth.schemas'
+import { register as registerUser } from '../../infrastructure/api-auth.repository'
+import { getErrorMessage } from '../utils/error-message'
 
 export const RegisterPage = () => {
   const navigate = useNavigate()
