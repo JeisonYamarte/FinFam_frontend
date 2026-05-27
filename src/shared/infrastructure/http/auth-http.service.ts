@@ -2,11 +2,11 @@ import { client, tokenStore } from './client'
 import type { RefreshTokenResponse } from '@/shared/domain/types/api.types'
 
 type RefreshResponseLike = RefreshTokenResponse & {
-  access_token?: string
+  access_token: string
 }
 
 const getTokenFromRefresh = (data: RefreshResponseLike): string => {
-  const token = data.access_token ?? data.accessToken
+  const token = data.access_token
 
   if (!token) {
     throw new Error('No se recibio token de refresh.')

@@ -8,6 +8,11 @@ import {
 import { z } from 'zod'
 
 import { AuthLayout } from '@/shared/application/components/layout/auth-layout'
+import {
+  ProtectedRoute,
+  protectRoute,
+  redirectAuthenticatedUser,
+} from '@/shared/application/components/routes/protected-route'
 import { tokenStore } from '@/shared/infrastructure/http/client'
 import { ForgotPasswordPage } from '@/features/auth/application/pages/forgot-password-page'
 import { LoginPage } from '@/features/auth/application/pages/login-page'
@@ -16,6 +21,9 @@ import { ResetPasswordPage } from '@/features/auth/application/pages/reset-passw
 import { VerifyEmailPage } from '@/features/auth/application/pages/verify-email-page'
 import { DashboardPage } from '../pages/app/dashboard-page'
 import { NotFoundPage } from '@/shared/application/pages/not-found-page'
+import { HomesPage } from '@/features/homes/application/pages/homes-page'
+import { HomeSettingsPage } from '@/features/homes/application/pages/home-settings-page'
+import { ComingSoonPage } from '@/shared/application/pages/coming-soon-page'
 
 const rootRoute = createRootRoute({
   component: Outlet,
@@ -24,13 +32,7 @@ const rootRoute = createRootRoute({
 
 const publicGuard = (): void => {
   if (tokenStore.get()) {
-    throw redirect({ to: '/dashboard' })
-  }
-}
-
-const protectedGuard = (): void => {
-  if (!tokenStore.get()) {
-    throw redirect({ to: '/login' })
+    redirectAuthenticatedUser()
   }
 }
 
@@ -39,7 +41,7 @@ const indexRoute = createRoute({
   path: '/',
   beforeLoad: () => {
     if (tokenStore.get()) {
-      throw redirect({ to: '/dashboard' })
+      redirectAuthenticatedUser()
     }
 
     throw redirect({ to: '/login' })
@@ -108,14 +110,64 @@ const verifyEmailRoute = createRoute({
 const protectedRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: 'protected',
-  beforeLoad: protectedGuard,
-  component: Outlet,
+  beforeLoad: protectRoute(),
+  component: ProtectedRoute,
+})
+
+const homesRoute = createRoute({
+  getParentRoute: () => protectedRoute,
+  path: '/homes',
+  component: HomesPage,
 })
 
 const dashboardRoute = createRoute({
   getParentRoute: () => protectedRoute,
   path: '/dashboard',
+  beforeLoad: protectRoute({ requiresHome: true }),
   component: DashboardPage,
+})
+
+const expensesRoute = createRoute({
+  getParentRoute: () => protectedRoute,
+  path: '/expenses',
+  beforeLoad: protectRoute({ requiresHome: true }),
+  component: () => (
+    <ComingSoonPage
+      title="Gastos"
+      description="La ruta ya esta lista dentro del shell protegido y quedara conectada al detalle de gastos del hogar activo."
+    />
+  ),
+})
+
+const closuresRoute = createRoute({
+  getParentRoute: () => protectedRoute,
+  path: '/closures',
+  beforeLoad: protectRoute({ requiresHome: true }),
+  component: () => (
+    <ComingSoonPage
+      title="Cierres"
+      description="La ruta ya esta lista para recibir simulacion y creacion de cierres del hogar activo."
+    />
+  ),
+})
+
+const membersRoute = createRoute({
+  getParentRoute: () => protectedRoute,
+  path: '/members',
+  beforeLoad: protectRoute({ requiresHome: true }),
+  component: () => (
+    <ComingSoonPage
+      title="Miembros"
+      description="La ruta ya esta lista para conectar invitaciones, roles y administracion de miembros."
+    />
+  ),
+})
+
+const homeSettingsRoute = createRoute({
+  getParentRoute: () => protectedRoute,
+  path: '/homes/$homeId/settings',
+  beforeLoad: protectRoute({ requiresHome: true, requiresAdmin: true }),
+  component: HomeSettingsPage,
 })
 
 const routeTree = rootRoute.addChildren([
@@ -126,7 +178,14 @@ const routeTree = rootRoute.addChildren([
     forgotPasswordRoute,
   ]),
   tokenActionRoute.addChildren([resetPasswordRoute, verifyEmailRoute]),
-  protectedRoute.addChildren([dashboardRoute]),
+  protectedRoute.addChildren([
+    homesRoute,
+    dashboardRoute,
+    expensesRoute,
+    closuresRoute,
+    membersRoute,
+    homeSettingsRoute,
+  ]),
 ])
 
 export const router = createRouter({

@@ -13,8 +13,16 @@ type AuthMessageResponse = {
   message?: string
 }
 
+const isApiResponse = <T>(value: unknown): value is ApiResponse<T> => {
+  if (!value || typeof value !== 'object') {
+    return false
+  }
+
+  return 'data' in value
+}
+
 const getTokenFromResponse = (data: AuthTokenResponse): string => {
-  const token = data.access_token ?? data.accessToken ?? data.token
+  const token = data.access_token
 
   if (!token) {
     throw new Error('No se recibio token de autenticacion.')
@@ -29,8 +37,14 @@ export const login = async (payload: LoginPayload): Promise<void> => {
 }
 
 export const getCurrentUser = async (): Promise<CurrentUser> => {
-  const { data } = await client.get<ApiResponse<CurrentUser>>('/auth/me')
-  return data.data
+  const { data } = await client.get<CurrentUser | ApiResponse<CurrentUser>>('/auth/me')
+
+  // Some environments return { data: user } while others return user directly.
+  if (isApiResponse<CurrentUser>(data)) {
+    return data.data
+  }
+
+  return data
 }
 
 export const register = async (payload: RegisterPayload): Promise<void> => {

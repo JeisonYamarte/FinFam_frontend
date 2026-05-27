@@ -18,8 +18,7 @@ type QueueEntry = {
 }
 
 type RefreshResponseLike = {
-  access_token?: string
-  accessToken?: string
+  access_token: string
 }
 
 export const tokenStore = {
@@ -84,7 +83,7 @@ const rejectQueue = (error: unknown): void => {
 }
 
 const getTokenFromRefresh = (data: RefreshResponseLike): string => {
-  const token = data.access_token ?? data.accessToken
+  const token = data.access_token
 
   if (!token) {
     throw new Error('No se recibio token de refresh.')

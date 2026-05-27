@@ -9,6 +9,7 @@ import { queryClient } from './lib/query-client'
 import { initializeAuth } from '@/shared/infrastructure/http/auth-http.service'
 import { setUnauthorizedHandler } from '@/shared/infrastructure/http/client'
 import { AppLoadingPage } from '@/shared/application/pages/app-loading-page'
+import { ToastProvider } from '@/shared/application/components/feedback/toast-provider'
 import { router } from './router'
 
 function App() {
@@ -43,8 +44,10 @@ function App() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
-      <ReactQueryDevtools initialIsOpen={false} />
+      <ToastProvider>
+        <RouterProvider router={router} />
+        <ReactQueryDevtools initialIsOpen={false} />
+      </ToastProvider>
     </QueryClientProvider>
   )
 }

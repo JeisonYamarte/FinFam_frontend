@@ -1,9 +1,12 @@
 export interface CurrentUser {
   id: string
+  name: string
+  lastName: string
+  birthDate: string
   email: string
-  firstName?: string
-  lastName?: string
-  [key: string]: unknown
+  verifiedEmail: boolean
+  createdAt: string
+  updatedAt: string
 }
 
 export type LoginPayload = {
@@ -29,7 +32,5 @@ export type ResetPasswordPayload = {
 }
 
 export type AuthTokenResponse = {
-  access_token?: string
-  accessToken?: string
-  token?: string
+  access_token: string
 }

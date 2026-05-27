@@ -17,5 +17,5 @@ export interface PaginatedResponse<T> {
 }
 
 export interface RefreshTokenResponse {
-  accessToken: string
+  access_token: string
 }
