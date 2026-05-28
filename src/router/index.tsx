@@ -25,6 +25,7 @@ import { HomesPage } from '@/features/homes/application/pages/homes-page'
 import { HomeSettingsPage } from '@/features/homes/application/pages/home-settings-page'
 import { ComingSoonPage } from '@/shared/application/pages/coming-soon-page'
 import { AcceptInvitationPage } from '@/features/invitations/application/pages/accept-invitation-page'
+import { ExpensesPage } from '@/features/expenses/application/pages/expenses-page'
 
 const rootRoute = createRootRoute({
   component: Outlet,
@@ -150,12 +151,7 @@ const expensesRoute = createRoute({
   getParentRoute: () => protectedRoute,
   path: '/expenses',
   beforeLoad: protectRoute({ requiresHome: true }),
-  component: () => (
-    <ComingSoonPage
-      title="Gastos"
-      description="La ruta ya esta lista dentro del shell protegido y quedara conectada al detalle de gastos del hogar activo."
-    />
-  ),
+  component: ExpensesPage,
 })
 
 const closuresRoute = createRoute({

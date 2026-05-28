@@ -1,14 +1,30 @@
+import { useState } from 'react'
+
 import {
+  EyeIcon,
   EllipsisHorizontalIcon,
   PencilSquareIcon,
+  PlusIcon,
   TrashIcon,
 } from '@heroicons/react/24/outline'
 import { Link } from '@tanstack/react-router'
+import { useQueryClient } from '@tanstack/react-query'
 
 import { Alert } from '../../components/ui/alert'
 import { Button } from '../../components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card'
+import { getErrorMessage } from '@/features/auth/application/utils/error-message'
+import { ExpenseDetailModal } from '@/features/expenses/application/components/expense-detail-modal'
+import { ExpenseFormModal } from '@/features/expenses/application/components/expense-form-modal'
 import {
+  useCreateExpense,
+  useDeleteExpense,
+  useExpenseDetail,
+  useUpdateExpense,
+} from '@/features/expenses/application/hooks/use-expenses'
+import { ConfirmActionModal } from '@/features/homes/application/components/confirm-action-modal'
+import {
+  HOME_QUERY_KEYS,
   useHomeCalculation,
   useHomeClosures,
   useHomeDetail,
@@ -19,35 +35,141 @@ import {
   formatShortDate,
   getInitials,
 } from '@/features/homes/application/utils/formatters'
+import type { HomeExpense } from '@/features/homes/domain/Home.entity'
+import { useCurrentUser } from '@/features/auth/application/hooks/use-current-user'
+import { toast } from '@/shared/application/components/feedback/toast-provider'
 import { activeHomeSelectors, useActiveHomeStore } from '@/stores/active-home.store'
 
 export const DashboardPage = () => {
+  const queryClient = useQueryClient()
   const activeHomeId = useActiveHomeStore(activeHomeSelectors.id)
   const activeHomeName = useActiveHomeStore(activeHomeSelectors.name)
   const activeUserRole = useActiveHomeStore(activeHomeSelectors.role)
   const isAdmin = activeUserRole === 'ADMIN'
 
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const [selectedDetailId, setSelectedDetailId] = useState<string | null>(null)
+  const [selectedEditId, setSelectedEditId] = useState<string | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<HomeExpense | null>(null)
+
   const homeDetailQuery = useHomeDetail(activeHomeId)
   const homeCalculationQuery = useHomeCalculation(activeHomeId)
   const expensesQuery = useHomeExpenses(activeHomeId, 5)
   const closuresQuery = useHomeClosures(activeHomeId, 3)
+  const currentUserQuery = useCurrentUser()
+  const selectedExpenseQuery = useExpenseDetail(activeHomeId, selectedDetailId)
+  const selectedEditExpenseQuery = useExpenseDetail(activeHomeId, selectedEditId)
+
+  const createExpenseMutation = useCreateExpense(activeHomeId, { page: 1, limit: 5 })
+  const updateExpenseMutation = useUpdateExpense(activeHomeId, { page: 1, limit: 5 })
+  const deleteExpenseMutation = useDeleteExpense(activeHomeId, { page: 1, limit: 5 })
 
   const members = homeDetailQuery.data?.members ?? []
   const visibleMembers = members.slice(0, 4)
   const hasMoreMembers = members.length > 4
-  const balance = homeCalculationQuery.data?.balance ?? 0
-  const balanceLabel = balance >= 0 ? 'Te deben' : 'Debes'
-  const balanceTone = balance >= 0 ? 'text-emerald-400' : 'text-rose-400'
+  const currentUserId = currentUserQuery.data?.id
+  const userTotals = currentUserId
+    ? homeCalculationQuery.data?.totalsByUser[currentUserId]
+    : undefined
+  const totalSpentByMe = userTotals?.paid ?? 0
+  const mySplitsTotal = userTotals?.split ?? 0
+  const myNetAmount = totalSpentByMe - mySplitsTotal
+  const myNetLabel =
+    myNetAmount > 0
+      ? `Has pagado de mas ${formatCurrency(myNetAmount)}`
+      : myNetAmount < 0
+        ? `Te falta cubrir ${formatCurrency(Math.abs(myNetAmount))}`
+        : 'Estas al dia con tus gastos'
   const hasDashboardError =
-    homeDetailQuery.error || homeCalculationQuery.error || expensesQuery.error || closuresQuery.error
+    homeDetailQuery.error ||
+    homeCalculationQuery.error ||
+    expensesQuery.error ||
+    closuresQuery.error ||
+    currentUserQuery.error
   const isDashboardLoading =
     homeDetailQuery.isLoading ||
     homeCalculationQuery.isLoading ||
     expensesQuery.isLoading ||
-    closuresQuery.isLoading
+    closuresQuery.isLoading ||
+    currentUserQuery.isLoading
+
+  const refreshDashboardExpenseData = async () => {
+    await queryClient.invalidateQueries({
+      queryKey: HOME_QUERY_KEYS.expenses(activeHomeId ?? 'none', 5),
+    })
+    await queryClient.invalidateQueries({
+      queryKey: HOME_QUERY_KEYS.calculation(activeHomeId ?? 'none'),
+    })
+  }
+
+  const handleCreateExpense = async (values: {
+    title: string
+    description: string
+    amount: number
+    date: string
+    payers: Array<{ userId: string; amountPaid: number }>
+    splits: Array<{ userId: string; amount: number }>
+    receipt?: File | null
+  }) => {
+    await createExpenseMutation.mutateAsync(values)
+    await refreshDashboardExpenseData()
+
+    toast({
+      title: 'Gasto creado',
+      description: 'El gasto se registro correctamente.',
+      variant: 'success',
+    })
+
+    setIsCreateModalOpen(false)
+  }
+
+  const handleUpdateExpense = async (values: {
+    title: string
+    description: string
+    amount: number
+    date: string
+    payers: Array<{ userId: string; amountPaid: number }>
+    splits: Array<{ userId: string; amount: number }>
+    receipt?: File | null
+  }) => {
+    if (!selectedEditId) {
+      return
+    }
+
+    await updateExpenseMutation.mutateAsync({
+      expenseId: selectedEditId,
+      payload: values,
+    })
+    await refreshDashboardExpenseData()
+
+    toast({
+      title: 'Gasto actualizado',
+      description: 'Los cambios se guardaron correctamente.',
+      variant: 'success',
+    })
+
+    setSelectedEditId(null)
+  }
+
+  const handleDeleteExpense = async () => {
+    if (!deleteTarget) {
+      return
+    }
+
+    await deleteExpenseMutation.mutateAsync(deleteTarget.id)
+    await refreshDashboardExpenseData()
+
+    toast({
+      title: 'Gasto eliminado',
+      description: 'El gasto se elimino correctamente.',
+      variant: 'success',
+    })
+
+    setDeleteTarget(null)
+  }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-24 sm:pb-20">
       {hasDashboardError ? (
         <Alert variant="error">No pudimos cargar la informacion del hogar activo.</Alert>
       ) : null}
@@ -75,14 +197,14 @@ export const DashboardPage = () => {
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
           <MetricCard
             label="Total gastado"
-            value={isDashboardLoading ? '...' : formatCurrency(homeCalculationQuery.data?.totalSpent ?? 0)}
-            helper={`${expensesQuery.data?.length ?? 0} gastos recientes`}
+            value={isDashboardLoading ? '...' : formatCurrency(totalSpentByMe)}
+            helper="Suma de tus pagos"
           />
           <MetricCard
             label="Tu saldo"
-            value={isDashboardLoading ? '...' : formatCurrency(balance)}
-            helper={balanceLabel}
-            valueClassName={balanceTone}
+            value={isDashboardLoading ? '...' : formatCurrency(mySplitsTotal)}
+            helper={myNetLabel}
+            valueClassName="text-amber-300"
           />
           <MetricCard
             label="Miembros"
@@ -113,7 +235,18 @@ export const DashboardPage = () => {
               expensesQuery.data.map((expense) => (
                 <div
                   key={expense.id}
-                  className="flex flex-wrap items-start gap-3 rounded-2xl border border-white/8 bg-background/45 px-3 py-3 sm:flex-nowrap sm:items-center"
+                  role="button"
+                  tabIndex={0}
+                  className="flex flex-wrap items-start gap-3 rounded-2xl border border-white/8 bg-background/45 px-3 py-3 transition hover:border-primary/40 hover:bg-background/55 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 sm:flex-nowrap sm:items-center"
+                  onClick={() => {
+                    setSelectedDetailId(expense.id)
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault()
+                      setSelectedDetailId(expense.id)
+                    }
+                  }}
                 >
                   <div className="flex size-11 shrink-0 items-center justify-center rounded-2xl bg-white/6 text-xs font-semibold uppercase text-muted-foreground">
                     {expense.title.slice(0, 2)}
@@ -131,12 +264,42 @@ export const DashboardPage = () => {
                       {formatCurrency(expense.amount)}
                     </p>
                   </div>
+                  <Button
+                    type="button"
+                    size="icon-sm"
+                    variant="ghost"
+                    aria-label="Ver detalle"
+                    onClick={(event) => {
+                      event.stopPropagation()
+                      setSelectedDetailId(expense.id)
+                    }}
+                  >
+                    <EyeIcon className="size-4" />
+                  </Button>
                   {isAdmin ? (
                     <div className="ml-auto hidden gap-2 sm:ml-0 sm:flex">
-                      <Button type="button" size="icon-sm" variant="ghost">
+                      <Button
+                        type="button"
+                        size="icon-sm"
+                        variant="ghost"
+                        disabled={expense.closureId !== null}
+                        onClick={(event) => {
+                          event.stopPropagation()
+                          setSelectedEditId(expense.id)
+                        }}
+                      >
                         <PencilSquareIcon className="size-4" />
                       </Button>
-                      <Button type="button" size="icon-sm" variant="ghost">
+                      <Button
+                        type="button"
+                        size="icon-sm"
+                        variant="ghost"
+                        disabled={expense.closureId !== null}
+                        onClick={(event) => {
+                          event.stopPropagation()
+                          setDeleteTarget(expense)
+                        }}
+                      >
                         <TrashIcon className="size-4" />
                       </Button>
                     </div>
@@ -238,6 +401,83 @@ export const DashboardPage = () => {
           </Card>
         </div>
       </section>
+
+      {isAdmin ? (
+        <Button
+          type="button"
+          onClick={() => {
+            setIsCreateModalOpen(true)
+          }}
+          className="fixed bottom-5 right-4 z-30 inline-flex items-center gap-2 rounded-full bg-primary px-4 py-3 text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/30 transition hover:brightness-110 sm:bottom-7 sm:right-7 sm:px-5 sm:py-3.5 sm:text-base"
+        >
+          <PlusIcon className="size-5 sm:size-6" />
+          <span className="hidden sm:inline">Crear gasto</span>
+        </Button>
+      ) : null}
+
+      <ExpenseFormModal
+        isOpen={isCreateModalOpen}
+        mode="create"
+        members={members}
+        isPending={createExpenseMutation.isPending}
+        error={createExpenseMutation.error}
+        onClose={() => {
+          setIsCreateModalOpen(false)
+          createExpenseMutation.reset()
+        }}
+        onSubmit={handleCreateExpense}
+      />
+
+      <ExpenseFormModal
+        isOpen={Boolean(selectedEditId)}
+        mode="edit"
+        members={members}
+        isPending={updateExpenseMutation.isPending || selectedEditExpenseQuery.isLoading}
+        error={updateExpenseMutation.error ?? selectedEditExpenseQuery.error}
+        initialExpense={selectedEditExpenseQuery.data}
+        onClose={() => {
+          setSelectedEditId(null)
+          updateExpenseMutation.reset()
+        }}
+        onSubmit={handleUpdateExpense}
+      />
+
+      <ExpenseDetailModal
+        isOpen={Boolean(selectedDetailId)}
+        expense={selectedExpenseQuery.data ?? null}
+        onClose={() => {
+          setSelectedDetailId(null)
+        }}
+      />
+
+      <ConfirmActionModal
+        title="Eliminar gasto"
+        description={
+          deleteTarget?.closureId
+            ? 'Este gasto pertenece a un cierre y no puede eliminarse.'
+            : 'Esta accion no se puede deshacer. El gasto se eliminara para todos los miembros.'
+        }
+        confirmLabel="Eliminar"
+        isOpen={Boolean(deleteTarget)}
+        isPending={deleteExpenseMutation.isPending}
+        error={deleteExpenseMutation.error}
+        onClose={() => {
+          setDeleteTarget(null)
+          deleteExpenseMutation.reset()
+        }}
+        onConfirm={() => {
+          void handleDeleteExpense()
+        }}
+      />
+
+      {(createExpenseMutation.error || updateExpenseMutation.error) && !isCreateModalOpen && !selectedEditId ? (
+        <Alert variant="error">
+          {getErrorMessage(
+            createExpenseMutation.error ?? updateExpenseMutation.error,
+            'No se pudo guardar el gasto.',
+          )}
+        </Alert>
+      ) : null}
     </div>
   )
 }

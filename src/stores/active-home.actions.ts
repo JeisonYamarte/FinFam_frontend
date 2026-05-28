@@ -4,6 +4,7 @@ import {
   useActiveHomeStore,
   type ActiveHomeRole,
 } from './active-home.store'
+import { useHomeMembersStore } from './home-members.store'
 
 type SetActiveHomeInput = {
   id: string
@@ -18,5 +19,6 @@ export const setActiveHomeSession = ({ id, name, role }: SetActiveHomeInput): vo
 
 export const clearActiveHomeSession = (): void => {
   useActiveHomeStore.getState().clearActiveHome()
+  useHomeMembersStore.getState().clearMembers()
   void queryClient.invalidateQueries()
 }

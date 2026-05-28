@@ -29,6 +29,11 @@ const mapHome = (home: HomeListItemResponse): Home => ({
   membersCount: 0,
 })
 
+const asNumber = (value: unknown): number => {
+  const numericValue = Number(value)
+  return Number.isFinite(numericValue) ? numericValue : 0
+}
+
 const mapMember = (member: HomeMemberResponse): HomeMember => ({
   id: member.id,
   userId: member.userId,
@@ -46,25 +51,45 @@ const mapHomeDetail = (home: HomeByIdResponse, members: HomeMemberResponse[]): H
 })
 
 const mapCalculation = (items: HomeCalculationEntryResponse[]): HomeCalculation => {
-  const totalSpent = items.reduce((acc, item) => acc + item.amount, 0)
+  const totalSpent = items.reduce((acc, item) => acc + asNumber(item.amount), 0)
   const members = new Set<string>()
+  const totalsByUser: HomeCalculation['totalsByUser'] = {}
+
+  const getOrCreateTotals = (userId: string) => {
+    if (!totalsByUser[userId]) {
+      totalsByUser[userId] = {
+        paid: 0,
+        split: 0,
+      }
+    }
+
+    return totalsByUser[userId]
+  }
 
   for (const item of items) {
-    item.payers.forEach((payer) => members.add(payer.userId))
-    item.splits.forEach((split) => members.add(split.userId))
+    item.payers.forEach((payer) => {
+      members.add(payer.userId)
+      getOrCreateTotals(payer.userId).paid += asNumber(payer.amountPaid)
+    })
+
+    item.splits.forEach((split) => {
+      members.add(split.userId)
+      getOrCreateTotals(split.userId).split += asNumber(split.amount)
+    })
   }
 
   return {
     totalSpent,
     balance: 0,
     membersCount: members.size,
+    totalsByUser,
   }
 }
 
 const mapExpense = (expense: HomeExpenseResponse): HomeExpense => ({
   id: expense.id,
   title: expense.title,
-  amount: expense.amount,
+  amount: asNumber(expense.amount),
   date: expense.date,
   closureId: expense.closureId,
 })

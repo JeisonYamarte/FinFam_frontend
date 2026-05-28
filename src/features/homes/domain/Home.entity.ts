@@ -34,6 +34,13 @@ export interface HomeCalculation {
   totalSpent: number
   balance: number
   membersCount: number
+  totalsByUser: Record<
+    string,
+    {
+      paid: number
+      split: number
+    }
+  >
 }
 
 export interface HomeDetail {
