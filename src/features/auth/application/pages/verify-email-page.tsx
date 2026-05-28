@@ -1,6 +1,10 @@
 import { useMemo } from 'react'
 
-import { CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/outline'
+import {
+  CheckCircleIcon,
+  ClockIcon,
+  XCircleIcon,
+} from '@heroicons/react/24/outline'
 import { useQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
 
@@ -46,6 +50,18 @@ export const VerifyEmailPage = ({ token }: VerifyEmailPageProps) => {
     return <Alert variant="success">{query.data}</Alert>
   }, [query.data, query.error, query.isError, query.isPending, token])
 
+  const statusIcon = useMemo(() => {
+    if (!token || query.isError) {
+      return <XCircleIcon className="mx-auto size-12 text-destructive" />
+    }
+
+    if (query.isPending) {
+      return <ClockIcon className="mx-auto size-12 text-muted-foreground" />
+    }
+
+    return <CheckCircleIcon className="mx-auto size-12 text-success" />
+  }, [query.isError, query.isPending, token])
+
   return (
     <AuthShell
       description="Confirmamos tu direccion de correo para proteger tu cuenta."
@@ -55,11 +71,7 @@ export const VerifyEmailPage = ({ token }: VerifyEmailPageProps) => {
       title="Verificacion de correo"
     >
       <div className="space-y-4">
-        {query.isSuccess ? (
-          <CheckCircleIcon className="mx-auto size-12 text-success" />
-        ) : (
-          <XCircleIcon className="mx-auto size-12 text-muted-foreground" />
-        )}
+        {statusIcon}
 
         {content}
 

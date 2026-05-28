@@ -24,6 +24,7 @@ import { NotFoundPage } from '@/shared/application/pages/not-found-page'
 import { HomesPage } from '@/features/homes/application/pages/homes-page'
 import { HomeSettingsPage } from '@/features/homes/application/pages/home-settings-page'
 import { ComingSoonPage } from '@/shared/application/pages/coming-soon-page'
+import { AcceptInvitationPage } from '@/features/invitations/application/pages/accept-invitation-page'
 
 const rootRoute = createRootRoute({
   component: Outlet,
@@ -107,6 +108,24 @@ const verifyEmailRoute = createRoute({
   },
 })
 
+const verifyEmailTokenRoute = createRoute({
+  getParentRoute: () => tokenActionRoute,
+  path: '/verify-email/$token',
+  component: () => {
+    const { token } = verifyEmailTokenRoute.useParams()
+    return <VerifyEmailPage token={token} />
+  },
+})
+
+const invitationRoute = createRoute({
+  getParentRoute: () => tokenActionRoute,
+  path: '/invitations/$invitationId',
+  component: () => {
+    const { invitationId } = invitationRoute.useParams()
+    return <AcceptInvitationPage invitationId={invitationId} />
+  },
+})
+
 const protectedRoute = createRoute({
   getParentRoute: () => rootRoute,
   id: 'protected',
@@ -177,7 +196,12 @@ const routeTree = rootRoute.addChildren([
     registerRoute,
     forgotPasswordRoute,
   ]),
-  tokenActionRoute.addChildren([resetPasswordRoute, verifyEmailRoute]),
+  tokenActionRoute.addChildren([
+    resetPasswordRoute,
+    verifyEmailRoute,
+    verifyEmailTokenRoute,
+    invitationRoute,
+  ]),
   protectedRoute.addChildren([
     homesRoute,
     dashboardRoute,
