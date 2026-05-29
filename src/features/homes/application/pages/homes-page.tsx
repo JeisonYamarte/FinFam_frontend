@@ -142,13 +142,6 @@ export const HomesPage = () => {
                 </div>
               </div>
 
-              <div className="mt-8 flex items-center gap-2 text-sm text-muted-foreground">
-                <UserGroupIcon className="size-4" />
-                <span>
-                  {home.membersCount} {home.membersCount === 1 ? 'miembro' : 'miembros'}
-                </span>
-              </div>
-
               {activeHomeId === home.id ? (
                 <p className="mt-4 text-xs font-semibold uppercase tracking-[0.18em] text-primary">
                   Actualmente seleccionado

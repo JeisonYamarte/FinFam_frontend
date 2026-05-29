@@ -2,7 +2,6 @@ import { useState } from 'react'
 
 import {
   EyeIcon,
-  EllipsisHorizontalIcon,
   PencilSquareIcon,
   PlusIcon,
   TrashIcon,
@@ -23,21 +22,24 @@ import {
   useUpdateExpense,
 } from '@/features/expenses/application/hooks/use-expenses'
 import { ConfirmActionModal } from '@/features/homes/application/components/confirm-action-modal'
+import { HomeMemberRow } from '@/features/homes/application/components/home-member-row'
 import {
   HOME_QUERY_KEYS,
   useHomeCalculation,
   useHomeClosures,
   useHomeDetail,
   useHomeExpenses,
+  useRemoveHomeMember,
+  useUpdateHomeMemberRole,
 } from '@/features/homes/application/hooks/use-homes'
 import {
   formatCurrency,
   formatShortDate,
-  getInitials,
 } from '@/features/homes/application/utils/formatters'
-import type { HomeExpense } from '@/features/homes/domain/Home.entity'
+import type { HomeExpense, HomeMember, HomeRole } from '@/features/homes/domain/Home.entity'
 import { useCurrentUser } from '@/features/auth/application/hooks/use-current-user'
 import { toast } from '@/shared/application/components/feedback/toast-provider'
+import { setActiveHomeSession } from '@/stores/active-home.actions'
 import { activeHomeSelectors, useActiveHomeStore } from '@/stores/active-home.store'
 
 export const DashboardPage = () => {
@@ -51,6 +53,7 @@ export const DashboardPage = () => {
   const [selectedDetailId, setSelectedDetailId] = useState<string | null>(null)
   const [selectedEditId, setSelectedEditId] = useState<string | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<HomeExpense | null>(null)
+  const [memberToRemove, setMemberToRemove] = useState<HomeMember | null>(null)
 
   const homeDetailQuery = useHomeDetail(activeHomeId)
   const homeCalculationQuery = useHomeCalculation(activeHomeId)
@@ -59,6 +62,8 @@ export const DashboardPage = () => {
   const currentUserQuery = useCurrentUser()
   const selectedExpenseQuery = useExpenseDetail(activeHomeId, selectedDetailId)
   const selectedEditExpenseQuery = useExpenseDetail(activeHomeId, selectedEditId)
+  const updateMemberRoleMutation = useUpdateHomeMemberRole(activeHomeId)
+  const removeMemberMutation = useRemoveHomeMember(activeHomeId)
 
   const createExpenseMutation = useCreateExpense(activeHomeId, { page: 1, limit: 5 })
   const updateExpenseMutation = useUpdateExpense(activeHomeId, { page: 1, limit: 5 })
@@ -168,6 +173,51 @@ export const DashboardPage = () => {
     setDeleteTarget(null)
   }
 
+  const syncActiveHomeRole = (nextRole: HomeRole) => {
+    if (!activeHomeId || !currentUserId) {
+      return
+    }
+
+    const currentMember = members.find((member) => member.userId === currentUserId)
+    if (!currentMember) {
+      return
+    }
+
+    setActiveHomeSession({
+      id: activeHomeId,
+      name: activeHomeName ?? 'Hogar activo',
+      role: nextRole,
+    })
+  }
+
+  const handleToggleMemberRole = async (member: HomeMember) => {
+    const nextRole = member.role === 'ADMIN' ? 'GUEST' : 'ADMIN'
+
+    await updateMemberRoleMutation.mutateAsync({ memberId: member.id, role: nextRole })
+    if (member.userId === currentUserId) {
+      syncActiveHomeRole(nextRole)
+    }
+    toast({
+      title: 'Rol actualizado',
+      description: `El miembro ahora es ${nextRole}.`,
+      variant: 'success',
+    })
+  }
+
+  const handleRemoveMember = async () => {
+    if (!memberToRemove) {
+      return
+    }
+
+    await removeMemberMutation.mutateAsync(memberToRemove.id)
+    toast({
+      title: 'Miembro eliminado',
+      description: 'El miembro fue removido del hogar.',
+      variant: 'success',
+    })
+    setMemberToRemove(null)
+  }
+
   return (
     <div className="space-y-6 pb-24 sm:pb-20">
       {hasDashboardError ? (
@@ -186,10 +236,12 @@ export const DashboardPage = () => {
           </div>
           {isAdmin ? (
             <div className="flex flex-wrap gap-2 self-start lg:self-auto">
-              <Button type="button" variant="secondary">
-                Simular cierre
+              <Button asChild type="button" variant="secondary">
+                <Link to="/closures">Simular cierre</Link>
               </Button>
-              <Button type="button">Crear cierre</Button>
+              <Button asChild type="button">
+                <Link to="/closures">Crear cierre</Link>
+              </Button>
             </div>
           ) : null}
         </div>
@@ -205,15 +257,6 @@ export const DashboardPage = () => {
             value={isDashboardLoading ? '...' : formatCurrency(mySplitsTotal)}
             helper={myNetLabel}
             valueClassName="text-amber-300"
-          />
-          <MetricCard
-            label="Miembros"
-            value={String(homeCalculationQuery.data?.membersCount ?? members.length)}
-            helper={
-              members.length > 0
-                ? `${members.filter((member) => member.role === 'ADMIN').length} admin - ${members.filter((member) => member.role === 'GUEST').length} invitados`
-                : 'Sin miembros cargados'
-            }
           />
         </div>
       </section>
@@ -328,30 +371,19 @@ export const DashboardPage = () => {
               ) : visibleMembers.length ? (
                 <>
                   {visibleMembers.map((member) => (
-                    <div
+                    <HomeMemberRow
                       key={member.id}
-                      className="flex flex-wrap items-center gap-3 rounded-2xl border border-white/8 bg-background/45 px-3 py-3 sm:flex-nowrap"
-                    >
-                      <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-sky-200/90 text-sm font-semibold text-sky-900">
-                        {getInitials(member.name)}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-semibold text-foreground sm:text-base">
-                          {member.name}
-                        </p>
-                        <p className="truncate text-xs text-muted-foreground sm:text-sm">
-                          {member.email || 'Sin correo'}
-                        </p>
-                      </div>
-                      <span className="order-3 rounded-full bg-emerald-400/15 px-2.5 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-emerald-100 ring-1 ring-emerald-300/20 sm:order-0">
-                        {member.role}
-                      </span>
-                      {isAdmin ? (
-                        <Button type="button" size="icon-sm" variant="ghost" className="order-2 ml-auto sm:order-0 sm:ml-0">
-                          <EllipsisHorizontalIcon className="size-4" />
-                        </Button>
-                      ) : null}
-                    </div>
+                      member={member}
+                      isAdmin={isAdmin}
+                      isUpdatingRole={updateMemberRoleMutation.isPending}
+                      isRemoving={removeMemberMutation.isPending}
+                      onToggleRole={(nextMember) => {
+                        void handleToggleMemberRole(nextMember)
+                      }}
+                      onRequestRemove={(nextMember) => {
+                        setMemberToRemove(nextMember)
+                      }}
+                    />
                   ))}
                   {hasMoreMembers ? (
                     <Link to="/members" className="inline-flex text-sm font-medium text-primary transition hover:text-primary/80">
@@ -414,6 +446,26 @@ export const DashboardPage = () => {
           <span className="hidden sm:inline">Crear gasto</span>
         </Button>
       ) : null}
+
+      <ConfirmActionModal
+        title="Eliminar miembro"
+        description={
+          memberToRemove
+            ? `Se eliminara a ${memberToRemove.name} del hogar activo. Esta accion no se puede deshacer.`
+            : 'Se eliminara el miembro seleccionado del hogar activo.'
+        }
+        confirmLabel="Eliminar miembro"
+        isOpen={Boolean(memberToRemove)}
+        isPending={removeMemberMutation.isPending}
+        error={removeMemberMutation.error}
+        onClose={() => {
+          setMemberToRemove(null)
+          removeMemberMutation.reset()
+        }}
+        onConfirm={() => {
+          void handleRemoveMember()
+        }}
+      />
 
       <ExpenseFormModal
         isOpen={isCreateModalOpen}

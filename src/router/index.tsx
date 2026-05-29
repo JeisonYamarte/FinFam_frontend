@@ -21,9 +21,10 @@ import { ResetPasswordPage } from '@/features/auth/application/pages/reset-passw
 import { VerifyEmailPage } from '@/features/auth/application/pages/verify-email-page'
 import { DashboardPage } from '../pages/app/dashboard-page'
 import { NotFoundPage } from '@/shared/application/pages/not-found-page'
+import { ComingSoonPage } from '@/shared/application/pages/coming-soon-page'
 import { HomesPage } from '@/features/homes/application/pages/homes-page'
 import { HomeSettingsPage } from '@/features/homes/application/pages/home-settings-page'
-import { ComingSoonPage } from '@/shared/application/pages/coming-soon-page'
+import { MembersPage } from '@/features/homes/application/pages/members-page'
 import { AcceptInvitationPage } from '@/features/invitations/application/pages/accept-invitation-page'
 import { ExpensesPage } from '@/features/expenses/application/pages/expenses-page'
 
@@ -170,12 +171,7 @@ const membersRoute = createRoute({
   getParentRoute: () => protectedRoute,
   path: '/members',
   beforeLoad: protectRoute({ requiresHome: true }),
-  component: () => (
-    <ComingSoonPage
-      title="Miembros"
-      description="La ruta ya esta lista para conectar invitaciones, roles y administracion de miembros."
-    />
-  ),
+  component: MembersPage,
 })
 
 const homeSettingsRoute = createRoute({
