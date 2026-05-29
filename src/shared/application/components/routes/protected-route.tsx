@@ -1,4 +1,4 @@
-import { useState, type ComponentType, type SVGProps } from 'react'
+import { useEffect, useState, type ComponentType, type SVGProps } from 'react'
 
 import {
   ArrowRightStartOnRectangleIcon,
@@ -15,7 +15,7 @@ import { Outlet, redirect, useNavigate } from '@tanstack/react-router'
 import { useCurrentUser } from '@/features/auth/application/hooks/use-current-user'
 import { logout } from '@/features/auth/infrastructure/api-auth.repository'
 import { CreateHomeModal } from '@/features/homes/application/components/create-home-modal'
-import { useCreateHome } from '@/features/homes/application/hooks/use-homes'
+import { useCreateHome, useHomes } from '@/features/homes/application/hooks/use-homes'
 import { AppLayout, type AppLayoutNavigationItem } from '@/shared/application/components/layout/app-layout'
 import { toast } from '@/shared/application/components/feedback/toast-provider'
 import { tokenStore } from '@/shared/infrastructure/http/client'
@@ -112,12 +112,37 @@ export const ProtectedRoute = () => {
   const activeUserRole = useActiveHomeStore(activeHomeSelectors.role)
 
   const { data: currentUser } = useCurrentUser()
+  const homesQuery = useHomes()
   const currentUserDisplayName = getDisplayName(
     currentUser?.name,
     typeof currentUser?.lastName === 'string' ? currentUser.lastName : undefined,
     currentUser?.email,
   )
   const createHomeMutation = useCreateHome()
+
+  useEffect(() => {
+    if (!activeHomeId || !homesQuery.data?.length) {
+      return
+    }
+
+    const activeHomeFromApi = homesQuery.data.find((home) => home.id === activeHomeId)
+    if (!activeHomeFromApi) {
+      return
+    }
+
+    if (
+      activeHomeFromApi.name === activeHomeName &&
+      activeHomeFromApi.role === activeUserRole
+    ) {
+      return
+    }
+
+    setActiveHomeSession({
+      id: activeHomeFromApi.id,
+      name: activeHomeFromApi.name,
+      role: activeHomeFromApi.role,
+    })
+  }, [activeHomeId, activeHomeName, activeUserRole, homesQuery.data])
 
   const logoutMutation = useMutation({
     mutationFn: logout,
@@ -157,13 +182,17 @@ export const ProtectedRoute = () => {
       disabled: !activeHomeId,
       matches: (pathname) => pathname.startsWith('/members'),
     },
-    {
-      label: 'Configuracion',
-      to: activeHomeId ? `/homes/${activeHomeId}/settings` : '/homes',
-      icon: Cog6ToothIcon,
-      disabled: !activeHomeId,
-      matches: (pathname) => pathname.includes('/settings'),
-    },
+    ...(activeUserRole !== 'GUEST'
+      ? [
+          {
+            label: 'Configuracion',
+            to: activeHomeId ? `/homes/${activeHomeId}/settings` : '/homes',
+            icon: Cog6ToothIcon,
+            disabled: !activeHomeId,
+            matches: (pathname: string) => pathname.includes('/settings'),
+          },
+        ]
+      : []),
   ] satisfies NavigationDefinition[]
 
   const handleCreateHome = async ({ name }: { name: string }) => {

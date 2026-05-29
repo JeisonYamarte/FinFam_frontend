@@ -1,6 +1,6 @@
 import { useState } from 'react'
 
-import { HomeModernIcon, PlusIcon, UserGroupIcon } from '@heroicons/react/24/outline'
+import { HomeModernIcon, PlusIcon } from '@heroicons/react/24/outline'
 import { useNavigate } from '@tanstack/react-router'
 
 import { Alert } from '@/components/ui/alert'

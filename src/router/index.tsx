@@ -21,7 +21,7 @@ import { ResetPasswordPage } from '@/features/auth/application/pages/reset-passw
 import { VerifyEmailPage } from '@/features/auth/application/pages/verify-email-page'
 import { DashboardPage } from '../pages/app/dashboard-page'
 import { NotFoundPage } from '@/shared/application/pages/not-found-page'
-import { ComingSoonPage } from '@/shared/application/pages/coming-soon-page'
+import { ClosuresPage } from '@/features/closures/application/pages/closures-page'
 import { HomesPage } from '@/features/homes/application/pages/homes-page'
 import { HomeSettingsPage } from '@/features/homes/application/pages/home-settings-page'
 import { MembersPage } from '@/features/homes/application/pages/members-page'
@@ -100,6 +100,10 @@ const verifyEmailSearchSchema = z.object({
   token: z.string().optional(),
 })
 
+const closuresSearchSchema = z.object({
+  action: z.enum(['simulate', 'create']).optional(),
+})
+
 const verifyEmailRoute = createRoute({
   getParentRoute: () => tokenActionRoute,
   path: '/verify-email',
@@ -158,13 +162,12 @@ const expensesRoute = createRoute({
 const closuresRoute = createRoute({
   getParentRoute: () => protectedRoute,
   path: '/closures',
+  validateSearch: (search) => closuresSearchSchema.parse(search),
   beforeLoad: protectRoute({ requiresHome: true }),
-  component: () => (
-    <ComingSoonPage
-      title="Cierres"
-      description="La ruta ya esta lista para recibir simulacion y creacion de cierres del hogar activo."
-    />
-  ),
+  component: () => {
+    const search = closuresRoute.useSearch()
+    return <ClosuresPage initialAction={search.action ?? null} />
+  },
 })
 
 const membersRoute = createRoute({

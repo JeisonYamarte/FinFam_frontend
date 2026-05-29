@@ -13,6 +13,8 @@ import { Alert } from '../../components/ui/alert'
 import { Button } from '../../components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card'
 import { getErrorMessage } from '@/features/auth/application/utils/error-message'
+import { ClosureDetailModal } from '@/features/closures/application/components/closure-detail-modal'
+import { useClosures } from '@/features/closures/application/hooks/use-closures'
 import { ExpenseDetailModal } from '@/features/expenses/application/components/expense-detail-modal'
 import { ExpenseFormModal } from '@/features/expenses/application/components/expense-form-modal'
 import {
@@ -26,7 +28,6 @@ import { HomeMemberRow } from '@/features/homes/application/components/home-memb
 import {
   HOME_QUERY_KEYS,
   useHomeCalculation,
-  useHomeClosures,
   useHomeDetail,
   useHomeExpenses,
   useRemoveHomeMember,
@@ -52,13 +53,14 @@ export const DashboardPage = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [selectedDetailId, setSelectedDetailId] = useState<string | null>(null)
   const [selectedEditId, setSelectedEditId] = useState<string | null>(null)
+  const [selectedClosureId, setSelectedClosureId] = useState<string | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<HomeExpense | null>(null)
   const [memberToRemove, setMemberToRemove] = useState<HomeMember | null>(null)
 
   const homeDetailQuery = useHomeDetail(activeHomeId)
   const homeCalculationQuery = useHomeCalculation(activeHomeId)
   const expensesQuery = useHomeExpenses(activeHomeId, 5)
-  const closuresQuery = useHomeClosures(activeHomeId, 3)
+  const closuresQuery = useClosures(activeHomeId, 1)
   const currentUserQuery = useCurrentUser()
   const selectedExpenseQuery = useExpenseDetail(activeHomeId, selectedDetailId)
   const selectedEditExpenseQuery = useExpenseDetail(activeHomeId, selectedEditId)
@@ -237,10 +239,10 @@ export const DashboardPage = () => {
           {isAdmin ? (
             <div className="flex flex-wrap gap-2 self-start lg:self-auto">
               <Button asChild type="button" variant="secondary">
-                <Link to="/closures">Simular cierre</Link>
+                <Link to="/closures" search={{ action: 'simulate' }}>Simular cierre</Link>
               </Button>
               <Button asChild type="button">
-                <Link to="/closures">Crear cierre</Link>
+                <Link to="/closures" search={{ action: 'create' }}>Crear cierre</Link>
               </Button>
             </div>
           ) : null}
@@ -399,33 +401,37 @@ export const DashboardPage = () => {
 
           <Card>
             <CardHeader className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center sm:gap-4">
-              <CardTitle>Cierres anteriores</CardTitle>
+              <CardTitle>Ultimo cierre</CardTitle>
               <Link to="/closures" className="text-sm font-medium text-primary transition hover:text-primary/80">
                 {'Ver historial ->'}
               </Link>
             </CardHeader>
             <CardContent className="space-y-3">
               {closuresQuery.isLoading ? (
-                <SkeletonRows count={3} compact />
-              ) : closuresQuery.data?.length ? (
-                closuresQuery.data.map((closure) => (
-                  <div
-                    key={closure.id}
-                    className="flex flex-col items-start gap-3 rounded-2xl border border-white/8 bg-background/45 px-3 py-3 sm:flex-row sm:items-center sm:justify-between"
+                <SkeletonRows count={1} compact />
+              ) : closuresQuery.data?.[0] ? (
+                <div className="rounded-3xl border border-white/8 bg-background/45 p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary/80">
+                    Cierre mas reciente
+                  </p>
+                  <p className="mt-3 text-lg font-semibold text-foreground">
+                    {formatShortDate(closuresQuery.data[0].startDate)} - {formatShortDate(closuresQuery.data[0].endDate)}
+                  </p>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    Creado {formatShortDate(closuresQuery.data[0].createdAt)}
+                  </p>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    size="sm"
+                    className="mt-4 w-full sm:w-auto"
+                    onClick={() => {
+                      setSelectedClosureId(closuresQuery.data?.[0]?.id ?? null)
+                    }}
                   >
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-foreground sm:text-base">
-                        {formatShortDate(closure.startDate)} - {formatShortDate(closure.endDate)}
-                      </p>
-                      <p className="text-xs text-muted-foreground sm:text-sm">
-                        Creado {formatShortDate(closure.createdAt)}
-                      </p>
-                    </div>
-                    <Button type="button" variant="secondary" size="sm" className="w-full sm:w-auto">
-                      Ver detalle
-                    </Button>
-                  </div>
-                ))
+                    Ver detalle
+                  </Button>
+                </div>
               ) : (
                 <EmptyPanel message="Aun no hay cierres en este hogar" />
               )}
@@ -499,6 +505,16 @@ export const DashboardPage = () => {
         expense={selectedExpenseQuery.data ?? null}
         onClose={() => {
           setSelectedDetailId(null)
+        }}
+      />
+
+      <ClosureDetailModal
+        key={selectedClosureId ?? 'dashboard-closure-detail'}
+        closureId={selectedClosureId}
+        members={members}
+        isOpen={Boolean(selectedClosureId)}
+        onClose={() => {
+          setSelectedClosureId(null)
         }}
       />
 
