@@ -42,6 +42,10 @@ import { useCurrentUser } from '@/features/auth/application/hooks/use-current-us
 import { toast } from '@/shared/application/components/feedback/toast-provider'
 import { setActiveHomeSession } from '@/stores/active-home.actions'
 import { activeHomeSelectors, useActiveHomeStore } from '@/stores/active-home.store'
+import { getDashboardUserTotals, getOpenExpensesPreview } from './dashboard.utils'
+
+const DASHBOARD_EXPENSES_LIMIT = 25
+const DASHBOARD_VISIBLE_OPEN_EXPENSES = 5
 
 export const DashboardPage = () => {
   const queryClient = useQueryClient()
@@ -59,7 +63,7 @@ export const DashboardPage = () => {
 
   const homeDetailQuery = useHomeDetail(activeHomeId)
   const homeCalculationQuery = useHomeCalculation(activeHomeId)
-  const expensesQuery = useHomeExpenses(activeHomeId, 5)
+  const expensesQuery = useHomeExpenses(activeHomeId, DASHBOARD_EXPENSES_LIMIT)
   const closuresQuery = useClosures(activeHomeId, 1)
   const currentUserQuery = useCurrentUser()
   const selectedExpenseQuery = useExpenseDetail(activeHomeId, selectedDetailId)
@@ -67,20 +71,18 @@ export const DashboardPage = () => {
   const updateMemberRoleMutation = useUpdateHomeMemberRole(activeHomeId)
   const removeMemberMutation = useRemoveHomeMember(activeHomeId)
 
-  const createExpenseMutation = useCreateExpense(activeHomeId, { page: 1, limit: 5 })
-  const updateExpenseMutation = useUpdateExpense(activeHomeId, { page: 1, limit: 5 })
-  const deleteExpenseMutation = useDeleteExpense(activeHomeId, { page: 1, limit: 5 })
+  const createExpenseMutation = useCreateExpense(activeHomeId)
+  const updateExpenseMutation = useUpdateExpense(activeHomeId)
+  const deleteExpenseMutation = useDeleteExpense(activeHomeId)
 
   const members = homeDetailQuery.data?.members ?? []
   const visibleMembers = members.slice(0, 4)
   const hasMoreMembers = members.length > 4
   const currentUserId = currentUserQuery.data?.id
-  const userTotals = currentUserId
-    ? homeCalculationQuery.data?.totalsByUser[currentUserId]
-    : undefined
-  const totalSpentByMe = userTotals?.paid ?? 0
-  const mySplitsTotal = userTotals?.split ?? 0
-  const myNetAmount = totalSpentByMe - mySplitsTotal
+  const { totalSpentByMe, mySplitsTotal, myNetAmount } = getDashboardUserTotals(
+    homeCalculationQuery.data,
+    currentUserId,
+  )
   const myNetLabel =
     myNetAmount > 0
       ? `Has pagado de mas ${formatCurrency(myNetAmount)}`
@@ -99,10 +101,11 @@ export const DashboardPage = () => {
     expensesQuery.isLoading ||
     closuresQuery.isLoading ||
     currentUserQuery.isLoading
+  const openExpenses = getOpenExpensesPreview(expensesQuery.data, DASHBOARD_VISIBLE_OPEN_EXPENSES)
 
   const refreshDashboardExpenseData = async () => {
     await queryClient.invalidateQueries({
-      queryKey: HOME_QUERY_KEYS.expenses(activeHomeId ?? 'none', 5),
+      queryKey: HOME_QUERY_KEYS.expenses(activeHomeId ?? 'none', DASHBOARD_EXPENSES_LIMIT),
     })
     await queryClient.invalidateQueries({
       queryKey: HOME_QUERY_KEYS.calculation(activeHomeId ?? 'none'),
@@ -276,13 +279,13 @@ export const DashboardPage = () => {
           <CardContent className="space-y-3">
             {expensesQuery.isLoading ? (
               <SkeletonRows />
-            ) : expensesQuery.data?.length ? (
-              expensesQuery.data.map((expense) => (
+            ) : openExpenses.length ? (
+              openExpenses.map((expense) => (
                 <div
                   key={expense.id}
                   role="button"
                   tabIndex={0}
-                  className="flex flex-wrap items-start gap-3 rounded-2xl border border-white/8 bg-background/45 px-3 py-3 transition hover:border-primary/40 hover:bg-background/55 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 sm:flex-nowrap sm:items-center"
+                  className="flex flex-wrap items-start gap-3 rounded-2xl border border-white/8 bg-background/45 p-3 transition hover:border-primary/40 hover:bg-background/55 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/70 sm:flex-nowrap sm:items-center"
                   onClick={() => {
                     setSelectedDetailId(expense.id)
                   }}
@@ -352,7 +355,7 @@ export const DashboardPage = () => {
                 </div>
               ))
             ) : (
-              <EmptyPanel message="Sin gastos en este periodo" />
+              <EmptyPanel message="Sin gastos abiertos en este periodo" />
             )}
           </CardContent>
         </Card>

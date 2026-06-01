@@ -31,14 +31,18 @@ export interface HomeClosure {
 }
 
 export interface HomeCalculation {
-  totalSpent: number
-  balance: number
-  membersCount: number
+  period: {
+    startDate: string | null
+    endDate: string | null
+  }
+  openExpensesCount: number
+  totalSpentOpenPeriod: number
   totalsByUser: Record<
     string,
     {
       paid: number
       split: number
+      net: number
     }
   >
 }
@@ -119,17 +123,21 @@ export interface HomeExpensesResponse {
   }
 }
 
-export interface HomeCalculationEntryResponse {
-  id: string
-  amount: number
-  payers: Array<{
-    userId: string
-    amountPaid: number
-  }>
-  splits: Array<{
-    userId: string
-    amount: number
-  }>
+export interface HomeCalculationResponse {
+  period: {
+    startDate: string | null
+    endDate: string | null
+  }
+  openExpensesCount: number
+  totalSpentOpenPeriod: number
+  totalsByUser: Record<
+    string,
+    {
+      paid: number
+      split: number
+      net: number
+    }
+  >
 }
 
 export interface UpdateHomeResponse {

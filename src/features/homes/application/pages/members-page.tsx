@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useMemo, useState } from 'react'
 
 import { zodResolver } from '@hookform/resolvers/zod'
 import { EnvelopeIcon } from '@heroicons/react/24/outline'
@@ -52,13 +52,13 @@ export const MembersPage = () => {
     defaultValues: { email: '' },
   })
 
-  useEffect(() => {
-    setMemberToRemove((current) =>
-      current && !detailQuery.data?.members.some((member) => member.id === current.id)
-        ? null
-        : current,
-    )
-  }, [detailQuery.data?.members])
+  const effectiveMemberToRemove = useMemo(
+    () =>
+      memberToRemove && detailQuery.data?.members.some((member) => member.id === memberToRemove.id)
+        ? memberToRemove
+        : null,
+    [detailQuery.data?.members, memberToRemove],
+  )
 
   const syncActiveHomeRole = (member: HomeMember, nextRole: HomeRole) => {
     const currentUserId = currentUserQuery.data?.id
@@ -96,11 +96,11 @@ export const MembersPage = () => {
   }
 
   const handleRemoveMember = async () => {
-    if (!memberToRemove) {
+    if (!effectiveMemberToRemove) {
       return
     }
 
-    await removeMemberMutation.mutateAsync(memberToRemove.id)
+    await removeMemberMutation.mutateAsync(effectiveMemberToRemove.id)
     toast({
       title: 'Miembro eliminado',
       description: 'El miembro fue removido del hogar.',
@@ -217,12 +217,12 @@ export const MembersPage = () => {
       <ConfirmActionModal
         confirmLabel="Eliminar miembro"
         description={
-          memberToRemove
-            ? `Se eliminara a ${memberToRemove.name} del hogar activo. Esta accion no se puede deshacer.`
+          effectiveMemberToRemove
+            ? `Se eliminara a ${effectiveMemberToRemove.name} del hogar activo. Esta accion no se puede deshacer.`
             : 'Se eliminara el miembro seleccionado del hogar activo.'
         }
         error={removeMemberMutation.error ?? undefined}
-        isOpen={Boolean(memberToRemove)}
+        isOpen={Boolean(effectiveMemberToRemove)}
         isPending={removeMemberMutation.isPending}
         onClose={() => {
           setMemberToRemove(null)

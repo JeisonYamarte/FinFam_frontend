@@ -5,7 +5,7 @@ import type {
   Home,
   HomeByIdResponse,
   HomeCalculation,
-  HomeCalculationEntryResponse,
+  HomeCalculationResponse,
   HomeClosure,
   HomeClosureResponse,
   HomeCreateResponse,
@@ -29,10 +29,23 @@ const mapHome = (home: HomeListItemResponse): Home => ({
   membersCount: 0,
 })
 
+const EMPTY_CALCULATION: HomeCalculation = {
+  period: {
+    startDate: null,
+    endDate: null,
+  },
+  openExpensesCount: 0,
+  totalSpentOpenPeriod: 0,
+  totalsByUser: {},
+}
+
 const asNumber = (value: unknown): number => {
   const numericValue = Number(value)
   return Number.isFinite(numericValue) ? numericValue : 0
 }
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null
 
 const mapMember = (member: HomeMemberResponse): HomeMember => ({
   id: member.id,
@@ -50,38 +63,38 @@ const mapHomeDetail = (home: HomeByIdResponse, members: HomeMemberResponse[]): H
   members: members.map(mapMember),
 })
 
-const mapCalculation = (items: HomeCalculationEntryResponse[]): HomeCalculation => {
-  const totalSpent = items.reduce((acc, item) => acc + asNumber(item.amount), 0)
-  const members = new Set<string>()
-  const totalsByUser: HomeCalculation['totalsByUser'] = {}
-
-  const getOrCreateTotals = (userId: string) => {
-    if (!totalsByUser[userId]) {
-      totalsByUser[userId] = {
-        paid: 0,
-        split: 0,
-      }
-    }
-
-    return totalsByUser[userId]
+const mapCalculationResponse = (rawData: unknown): HomeCalculation => {
+  if (!isRecord(rawData)) {
+    return EMPTY_CALCULATION
   }
 
-  for (const item of items) {
-    item.payers.forEach((payer) => {
-      members.add(payer.userId)
-      getOrCreateTotals(payer.userId).paid += asNumber(payer.amountPaid)
-    })
+  const response = rawData as Partial<HomeCalculationResponse>
+  const period = isRecord(response.period)
+    ? {
+        startDate: typeof response.period.startDate === 'string' ? response.period.startDate : null,
+        endDate: typeof response.period.endDate === 'string' ? response.period.endDate : null,
+      }
+    : EMPTY_CALCULATION.period
 
-    item.splits.forEach((split) => {
-      members.add(split.userId)
-      getOrCreateTotals(split.userId).split += asNumber(split.amount)
-    })
+  const rawTotalsByUser = isRecord(response.totalsByUser) ? response.totalsByUser : {}
+  const totalsByUser: HomeCalculation['totalsByUser'] = {}
+
+  for (const [userId, totals] of Object.entries(rawTotalsByUser)) {
+    if (!isRecord(totals)) {
+      continue
+    }
+
+    totalsByUser[userId] = {
+      paid: asNumber(totals.paid),
+      split: asNumber(totals.split),
+      net: asNumber(totals.net),
+    }
   }
 
   return {
-    totalSpent,
-    balance: 0,
-    membersCount: members.size,
+    period,
+    openExpensesCount: asNumber(response.openExpensesCount),
+    totalSpentOpenPeriod: asNumber(response.totalSpentOpenPeriod),
     totalsByUser,
   }
 }
@@ -128,11 +141,9 @@ export class ApiHomesRepository implements IHomeRepository {
   }
 
   async getHomeCalculation(homeId: string): Promise<HomeCalculation> {
-    const { data } = await client.get<HomeCalculationEntryResponse[]>(
-      `/households/${homeId}/expenses/calculation`,
-    )
+    const { data } = await client.get<unknown>(`/households/${homeId}/expenses/calculation`)
 
-    return mapCalculation(data)
+    return mapCalculationResponse(data)
   }
 
   async getHomeExpenses(homeId: string, limit: number): Promise<HomeExpense[]> {

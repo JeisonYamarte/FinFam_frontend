@@ -26,7 +26,7 @@ export const HomeMemberRow = ({
   onToggleRole,
   onRequestRemove,
 }: HomeMemberRowProps) => (
-  <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-white/8 bg-background/45 px-3 py-3 sm:flex-nowrap">
+  <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-white/8 bg-background/45 p-3 sm:flex-nowrap">
     <div className="flex size-11 shrink-0 items-center justify-center rounded-full bg-sky-200/90 text-sm font-semibold text-sky-900">
       {getInitials(member.name)}
     </div>

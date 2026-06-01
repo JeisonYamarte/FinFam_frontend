@@ -243,10 +243,12 @@ Entrada:
 - Param: householdId
 
 Salida:
-- Body: array
-- item: id, amount, payers, splits
-- payers[] item: userId, amountPaid
-- splits[] item: userId, amount
+- Body objeto
+- period: startDate (YYYY-MM-DD o null), endDate (null mientras el periodo esta abierto)
+- openExpensesCount: number
+- totalSpentOpenPeriod: number
+- totalsByUser: objeto por userId
+- totalsByUser[userId]: paid, split, net
 
 ### GET /api/v1/expenses/:expenseId
 Entrada:

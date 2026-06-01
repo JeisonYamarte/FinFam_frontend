@@ -21,8 +21,9 @@ const deleteExpenseUseCase = new DeleteExpense(apiExpensesRepository)
 
 export const EXPENSE_QUERY_KEYS = {
   all: ['expenses'] as const,
-  list: (homeId: string, filters: ExpenseListFilters) => ['expenses', homeId, filters] as const,
-  detail: (homeId: string, expenseId: string) => ['expenses', homeId, expenseId] as const,
+  byHome: (homeId: string) => ['expenses', homeId] as const,
+  list: (homeId: string, filters: ExpenseListFilters) => ['expenses', homeId, 'list', filters] as const,
+  detail: (homeId: string, expenseId: string) => ['expenses', homeId, 'detail', expenseId] as const,
 }
 
 const withDefaultFilters = (filters?: ExpenseListFilters): ExpenseListFilters => ({
@@ -50,7 +51,7 @@ export const useExpenseDetail = (homeId: string | null, expenseId: string | null
     enabled: Boolean(homeId && expenseId),
   })
 
-export const useCreateExpense = (homeId: string | null, filters?: ExpenseListFilters) => {
+export const useCreateExpense = (homeId: string | null) => {
   const queryClient = useQueryClient()
 
   return useMutation({
@@ -61,13 +62,14 @@ export const useCreateExpense = (homeId: string | null, filters?: ExpenseListFil
       }),
     onSuccess: async () => {
       await queryClient.invalidateQueries({
-        queryKey: EXPENSE_QUERY_KEYS.list(homeId ?? 'none', withDefaultFilters(filters)),
+        queryKey: EXPENSE_QUERY_KEYS.byHome(homeId ?? 'none'),
+        refetchType: 'all',
       })
     },
   })
 }
 
-export const useUpdateExpense = (homeId: string | null, filters?: ExpenseListFilters) => {
+export const useUpdateExpense = (homeId: string | null) => {
   const queryClient = useQueryClient()
 
   return useMutation({
@@ -80,23 +82,26 @@ export const useUpdateExpense = (homeId: string | null, filters?: ExpenseListFil
     }) => updateExpenseUseCase.execute(expenseId, payload),
     onSuccess: async (updatedExpense) => {
       await queryClient.invalidateQueries({
-        queryKey: EXPENSE_QUERY_KEYS.list(homeId ?? 'none', withDefaultFilters(filters)),
+        queryKey: EXPENSE_QUERY_KEYS.byHome(homeId ?? 'none'),
+        refetchType: 'all',
       })
       await queryClient.invalidateQueries({
         queryKey: EXPENSE_QUERY_KEYS.detail(homeId ?? 'none', updatedExpense.id),
+        refetchType: 'all',
       })
     },
   })
 }
 
-export const useDeleteExpense = (homeId: string | null, filters?: ExpenseListFilters) => {
+export const useDeleteExpense = (homeId: string | null) => {
   const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: (expenseId: string) => deleteExpenseUseCase.execute(expenseId),
     onSuccess: async () => {
       await queryClient.invalidateQueries({
-        queryKey: EXPENSE_QUERY_KEYS.list(homeId ?? 'none', withDefaultFilters(filters)),
+        queryKey: EXPENSE_QUERY_KEYS.byHome(homeId ?? 'none'),
+        refetchType: 'all',
       })
     },
   })

@@ -112,7 +112,7 @@ export const AppLayout = ({
 
       <div className={cn('min-h-screen transition-[padding] duration-200', isDesktopCollapsed ? 'lg:pl-16' : 'lg:pl-60')}>
         <header className="sticky top-0 z-30 border-b border-white/6 bg-background/80 backdrop-blur-xl">
-          <div className="flex items-center justify-between gap-3 px-4 py-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between gap-3 p-4 sm:px-6 lg:px-8">
             <div className="flex min-w-0 items-center gap-3">
               {!isDesktop ? (
                 <Button

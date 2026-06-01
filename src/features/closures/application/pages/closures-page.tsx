@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 
 import { ArrowPathIcon, EyeIcon } from '@heroicons/react/24/outline'
 import { Link } from '@tanstack/react-router'
@@ -35,7 +35,7 @@ export const ClosuresPage = ({ initialAction = null }: ClosuresPageProps) => {
   const [previewMode, setPreviewMode] = useState<'simulate' | 'create'>('simulate')
   const [isPreviewOpen, setIsPreviewOpen] = useState(false)
   const [selectedClosureId, setSelectedClosureId] = useState<string | null>(null)
-  const [pendingInitialAction, setPendingInitialAction] = useState(initialAction)
+  const pendingInitialActionRef = useRef<'simulate' | 'create' | null>(initialAction)
 
   const homeDetailQuery = useHomeDetail(activeHomeId)
   const closuresQuery = useClosures(activeHomeId)
@@ -54,12 +54,15 @@ export const ClosuresPage = ({ initialAction = null }: ClosuresPageProps) => {
   }, [activeHomeId, clearMembers, homeDetailQuery.data?.members, setMembers])
 
   useEffect(() => {
+    const pendingInitialAction = pendingInitialActionRef.current
+
     if (!pendingInitialAction || !activeHomeId || !isAdmin) {
       return
     }
 
+    pendingInitialActionRef.current = null
+
     const parsed = closureActionSchema.safeParse({ householdId: activeHomeId })
-    setPendingInitialAction(null)
 
     if (!parsed.success) {
       return
@@ -69,7 +72,7 @@ export const ClosuresPage = ({ initialAction = null }: ClosuresPageProps) => {
     setIsPreviewOpen(true)
     createClosureMutation.reset()
     void simulateClosureMutation.mutateAsync(parsed.data).catch(() => undefined)
-  }, [activeHomeId, createClosureMutation, isAdmin, pendingInitialAction, simulateClosureMutation])
+  }, [activeHomeId, createClosureMutation, isAdmin, simulateClosureMutation])
 
   const handleOpenPreview = async (mode: 'simulate' | 'create') => {
     const parsed = closureActionSchema.safeParse({ householdId: activeHomeId ?? '' })
@@ -166,7 +169,7 @@ export const ClosuresPage = ({ initialAction = null }: ClosuresPageProps) => {
             <CardTitle>Periodo abierto</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4 md:grid-cols-2">
-            <div className="rounded-[24px] border border-white/10 bg-background/35 p-4">
+            <div className="rounded-3xl border border-white/10 bg-background/35 p-4">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary/80">Ultimo cierre</p>
               <p className="mt-3 text-lg font-semibold text-foreground">
                 {latestClosure
@@ -174,7 +177,7 @@ export const ClosuresPage = ({ initialAction = null }: ClosuresPageProps) => {
                   : 'Sin cierres previos'}
               </p>
             </div>
-            <div className="rounded-[24px] border border-white/10 bg-background/35 p-4">
+            <div className="rounded-3xl border border-white/10 bg-background/35 p-4">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-primary/80">Estado actual</p>
               <p className="mt-3 text-lg font-semibold text-foreground">
                 {latestClosure ? 'Listo para nueva simulacion' : 'Primer cierre pendiente'}
@@ -215,7 +218,7 @@ export const ClosuresPage = ({ initialAction = null }: ClosuresPageProps) => {
             closuresQuery.data.map((closure, index) => (
               <div
                 key={closure.id}
-                className="flex flex-col gap-3 rounded-[24px] border border-white/8 bg-background/40 px-4 py-4 sm:flex-row sm:items-center sm:justify-between"
+                className="flex flex-col gap-3 rounded-3xl border border-white/8 bg-background/40 p-4 sm:flex-row sm:items-center sm:justify-between"
               >
                 <div className="min-w-0">
                   <div className="flex flex-wrap items-center gap-2">

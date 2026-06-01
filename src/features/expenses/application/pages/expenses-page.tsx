@@ -75,9 +75,9 @@ export const ExpensesPage = () => {
   const selectedExpenseQuery = useExpenseDetail(activeHomeId, selectedDetailId)
   const selectedEditExpenseQuery = useExpenseDetail(activeHomeId, selectedEditId)
 
-  const createExpenseMutation = useCreateExpense(activeHomeId, queryFilters)
-  const updateExpenseMutation = useUpdateExpense(activeHomeId, queryFilters)
-  const deleteExpenseMutation = useDeleteExpense(activeHomeId, queryFilters)
+  const createExpenseMutation = useCreateExpense(activeHomeId)
+  const updateExpenseMutation = useUpdateExpense(activeHomeId)
+  const deleteExpenseMutation = useDeleteExpense(activeHomeId)
 
   const canManageExpenses = activeRole === 'ADMIN'
 
@@ -104,6 +104,10 @@ export const ExpensesPage = () => {
     receipt?: File | null
   }) => {
     await createExpenseMutation.mutateAsync(values)
+    setFilters((previous) => ({
+      ...previous,
+      page: 1,
+    }))
 
     toast({
       title: 'Gasto creado',

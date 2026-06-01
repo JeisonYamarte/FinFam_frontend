@@ -447,12 +447,14 @@ export const ExpenseFormModal = ({
                   {payerFields.map((field, index) => (
                     <div key={field.id} className="grid min-w-0 gap-2 rounded-xl border border-white/10 p-3 sm:grid-cols-[minmax(0,1fr)_130px_auto_auto]">
                       <select
-                        className="h-9 w-full min-w-0 rounded-md border border-input bg-transparent px-3 text-sm"
+                        className="h-9 w-full min-w-0 rounded-md border border-input bg-card px-3 text-sm text-foreground"
                         {...form.register(`payers.${index}.userId` as const)}
                       >
-                        <option value="">Selecciona miembro</option>
+                        <option value="" className="bg-card text-muted-foreground">
+                          Selecciona miembro
+                        </option>
                         {members.map((member) => (
-                          <option key={member.userId} value={member.userId}>
+                          <option key={member.userId} value={member.userId} className="bg-card text-foreground">
                             {member.name} ({member.role})
                           </option>
                         ))}
@@ -516,12 +518,14 @@ export const ExpenseFormModal = ({
                   {splitFields.map((field, index) => (
                     <div key={field.id} className="grid min-w-0 gap-2 rounded-xl border border-white/10 p-3 sm:grid-cols-[minmax(0,1fr)_130px_auto_auto]">
                       <select
-                        className="h-9 w-full min-w-0 rounded-md border border-input bg-transparent px-3 text-sm"
+                        className="h-9 w-full min-w-0 rounded-md border border-input bg-card px-3 text-sm text-foreground"
                         {...form.register(`splits.${index}.userId` as const)}
                       >
-                        <option value="">Selecciona miembro</option>
+                        <option value="" className="bg-card text-muted-foreground">
+                          Selecciona miembro
+                        </option>
                         {members.map((member) => (
-                          <option key={member.userId} value={member.userId}>
+                          <option key={member.userId} value={member.userId} className="bg-card text-foreground">
                             {member.name} ({member.role})
                           </option>
                         ))}

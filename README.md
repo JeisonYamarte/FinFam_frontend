@@ -1,268 +1,216 @@
-# React + TypeScript + Vite
+# FinFam Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Aplicacion web para gestionar finanzas compartidas por hogar.
 
-Currently, two official plugins are available:
+FinFam permite que varias personas registren gastos, repartan montos entre miembros, revisen saldos individuales y cierren periodos con balances finales.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Este repositorio esta enfocado en frontend con React, TypeScript y Vite, siguiendo arquitectura hexagonal + vertical slicing.
 
-## React Compiler
+## Demo del producto
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Casos de uso principales:
 
-## Expanding the ESLint configuration
+- Registro e inicio de sesion.
+- Creacion y seleccion de hogares.
+- Gestion de miembros por rol (ADMIN y GUEST).
+- Registro, edicion y eliminacion de gastos (segun permisos).
+- Calculo de saldo por usuario.
+- Simulacion y creacion de cierres financieros.
+- Historial y detalle de cierres.
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Stack tecnico
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- React 19
+- TypeScript
+- Vite 8
+- TanStack Router
+- TanStack Query
+- Tailwind CSS v4
+- shadcn/ui + Radix UI
+- React Hook Form + Zod
+- Axios
+- Zustand
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## Arquitectura
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+El proyecto esta organizado por contextos funcionales (auth, homes, expenses, closures, invitations), y cada contexto separa:
+
+- domain
+- application
+- infrastructure
+
+Documentacion de arquitectura:
+
+- [Guia de arquitectura frontend](docs/FRONTEND_ARCHITECTURE.md)
+- [Contratos de endpoints y DTOs](docs/ENDPOITS_DTOS.MD)
+
+## Requisitos
+
+- Node.js 20+
+- pnpm 9+
+
+## Instalacion local
+
+1. Instala dependencias:
+
+```bash
+pnpm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+1. Configura variables de entorno:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+cp .env .env.local
 ```
 
-intrcucciones del backend
+Edita `.env.local` y define:
 
-Instrucción de uso en el proyecto
+# FinFam Frontend
 
-Esta API soporta un flujo de finanzas compartidas por hogar: autenticación, gestión de hogares, gastos, invitaciones y cierres financieros.
-Regla de negocio clave: varios endpoints exigen membresía activa al hogar y algunos exigen rol ADMIN.
-Los cierres financieros “congelan” gastos incluidos en ese período; esos gastos ya no se pueden editar/eliminar.
-Endpoints de autenticación
+Aplicacion web para gestionar finanzas compartidas en el hogar.
 
-POST /api/v1/auth/login
-Qué hace: autentica credenciales (estrategia local), crea sesión en tabla sessions, devuelve access token y setea cookie refresh_token.
-Para qué sirve: iniciar sesión persistente (JWT corto + refresh token rotativo).
+FinFam centraliza el ciclo completo de gastos colaborativos: miembros, registro de consumos, distribucion de montos, seguimiento de saldos y cierres financieros por periodo.
 
-POST /api/v1/auth/register
-Qué hace: crea usuario, genera sesión, envía correo de verificación y retorna access token + cookie refresh_token.
-Para qué sirve: alta de usuarios con onboarding autenticado inmediato.
+Este repositorio corresponde al frontend construido con React, TypeScript y Vite, siguiendo arquitectura hexagonal con vertical slicing por contexto funcional.
 
-POST /api/v1/auth/refresh
-Qué hace: valida refresh_token en cookie, rota token de sesión y devuelve nuevo access token + nueva cookie.
-Para qué sirve: mantener sesión sin pedir login frecuente.
+## Vision del producto
 
-POST /api/v1/auth/logout
-Qué hace: invalida refresh token en base de datos y limpia cookie.
-Para qué sirve: cierre de sesión seguro.
+FinFam esta disenado para resolver un problema cotidiano: cuando varias personas comparten gastos, la informacion suele quedar fragmentada y es dificil entender quien pago, cuanto corresponde a cada integrante y como cerrar un periodo de forma ordenada.
 
-GET /api/v1/auth/verify-email?token=...
-Qué hace: valida token temporal en caché y marca correo como verificado.
-Para qué sirve: habilitar confianza de cuenta y reducir cuentas no confirmadas.
+La aplicacion ofrece una experiencia clara para:
 
-POST /api/v1/auth/forgot-password
-Qué hace: genera token temporal para reset y envía email (respuesta neutra para no filtrar si existe el correo).
-Para qué sirve: recuperación segura de contraseña.
+- Autenticarse y operar con sesion segura.
+- Crear y administrar hogares.
+- Gestionar miembros y roles (ADMIN y GUEST).
+- Registrar, editar y eliminar gastos segun permisos.
+- Visualizar saldos individuales y resumen del periodo abierto.
+- Simular y crear cierres financieros con trazabilidad.
 
-POST /api/v1/auth/reset-password
-Qué hace: valida token de reset y actualiza contraseña hasheada.
-Para qué sirve: completar recuperación de acceso.
+## Stack tecnico
 
-GET /api/v1/auth/me
-Qué hace: devuelve datos del usuario autenticado por JWT.
-Para qué sirve: hidratar perfil actual en frontend.
+- React 19
+- TypeScript
+- Vite 8
+- TanStack Router
+- TanStack Query
+- Tailwind CSS v4
+- shadcn/ui + Radix UI
+- React Hook Form + Zod
+- Axios
+- Zustand
+- Vitest
 
-Endpoints de usuarios
+## Arquitectura
 
-POST /api/v1/users
-Qué hace: crea usuario (hash de contraseña, control de email único).
-Para qué sirve: alta directa de usuarios (flujo administrativo o alternativo).
+La base del proyecto se organiza por contextos funcionales (`auth`, `homes`, `expenses`, `closures`, `invitations`).
 
-GET /api/v1/users
-Qué hace: lista usuarios con filtros por nombre/apellido/email y paginación.
-Para qué sirve: consulta administrativa y exploración de usuarios.
+Cada contexto separa responsabilidades en tres capas:
 
-GET /api/v1/users/:id
-Qué hace: obtiene un usuario por UUID.
-Para qué sirve: detalle de perfil.
+- `domain`: entidades, contratos y reglas de negocio.
+- `application`: casos de uso, hooks y componentes de interfaz.
+- `infrastructure`: repositorios HTTP y adaptadores externos.
 
-PATCH /api/v1/users/:id
-Qué hace: actualiza datos de usuario; si cambia password, se rehashea.
-Para qué sirve: mantenimiento de perfil.
+Esta estructura permite escalar funcionalidades de forma mantenible, con limites claros entre logica de negocio y detalles de implementacion.
 
-DELETE /api/v1/users/:id
-Qué hace: elimina usuario por ID.
-Para qué sirve: administración/limpieza de cuentas.
+Documentacion complementaria:
 
-Endpoints de hogares
+- [Guia de arquitectura frontend](docs/FRONTEND_ARCHITECTURE.md)
+- [Contratos de endpoints y DTOs](docs/ENDPOITS_DTOS.MD)
 
-POST /api/v1/homes
-Qué hace: crea hogar y asigna al creador como ADMIN.
-Para qué sirve: iniciar un espacio financiero compartido.
+## Estado del proyecto
 
-GET /api/v1/homes
-Qué hace: lista hogares donde el usuario tiene membresía activa.
-Para qué sirve: selector de contexto de trabajo.
+El frontend se encuentra en estado funcional y utilizable de punta a punta para el flujo principal de finanzas compartidas.
 
-GET /api/v1/homes/:homeId
-Qué hace: devuelve detalle del hogar y cantidad de miembros activos.
-Para qué sirve: vista general del hogar.
+Incluye:
 
-PATCH /api/v1/homes/:homeId
-Qué hace: actualiza nombre del hogar (solo ADMIN).
-Para qué sirve: gestión básica del hogar.
+- Experiencia de autenticacion con refresh token.
+- Navegacion por rutas protegidas.
+- Gestion de hogares y miembros por rol.
+- Gestion de gastos con validaciones de dominio.
+- Modulo de cierres con simulacion y confirmacion.
+- Suite de calidad automatizada con lint, tests y build.
+- Workflow de CI para validaciones en `main` y `develop`.
 
-DELETE /api/v1/homes/:homeId
-Qué hace: elimina hogar y datos relacionados (membresías, gastos, cierres).
-Para qué sirve: baja total de un hogar.
+## Requisitos
 
-GET /api/v1/homes/:homeId/members
-Qué hace: lista miembros activos y roles.
-Para qué sirve: administración de participantes.
+- Node.js 20+
+- pnpm 9+
 
-PATCH /api/v1/homes/:homeId/members/:memberId/role
-Qué hace: cambia rol de miembro (solo ADMIN, protege no degradar al último admin).
-Para qué sirve: control de permisos internos.
+## Instalacion y ejecucion local
 
-DELETE /api/v1/homes/:homeId/members/:memberId
-Qué hace: elimina miembro (ADMIN o auto-remoción, con reglas de último admin).
-Para qué sirve: moderación/salida de miembros.
+1. Instalar dependencias:
 
-POST /api/v1/homes/:homeId/invitations
-Qué hace: crea invitación por email (solo ADMIN), con TTL y control de duplicados en caché.
-Para qué sirve: incorporar nuevos miembros de forma controlada.
+```bash
+pnpm install
+```
 
-POST /api/v1/homes/:homeId/leave
-Qué hace: permite salir del hogar; si es el último miembro, elimina el hogar.
-Para qué sirve: salida voluntaria con consistencia de datos.
+2. Configurar entorno:
 
-Endpoints de invitaciones
+```bash
+cp .env .env.local
+```
 
-POST /api/v1/invitations/:invitationId/accept
-Qué hace: acepta invitación, valida existencia y agrega membresía tipo GUEST.
-Para qué sirve: alta de miembro invitado sin flujo manual.
+Definir en `.env.local`:
 
-POST /api/v1/invitations/:invitationId/decline
-Qué hace: rechaza invitación y limpia claves temporales.
-Para qué sirve: cerrar invitaciones pendientes.
+```env
+VITE_API_URL=http://localhost:3000/api/v1
+```
 
-Endpoints de gastos
+3. Ejecutar proyecto:
 
-POST /api/v1/expenses
-Qué hace: crea gasto (solo ADMIN), valida integridad financiera (suma de payers/splits = monto), valida miembros y opcionalmente sube comprobante.
-Para qué sirve: registrar movimientos económicos del hogar.
+```bash
+pnpm dev
+```
 
-GET /api/v1/households/:householdId/expenses
-Qué hace: lista gastos con paginación y filtros (closureId, rango de fechas).
-Para qué sirve: historial y análisis de gastos.
+4. Abrir aplicacion:
 
-GET /api/v1/households/:householdId/expenses/calculation
-Qué hace: devuelve gastos en formato para motor de balance.
-Para qué sirve: base de cálculo para deudas/saldos.
+```text
+http://localhost:5173
+```
 
-GET /api/v1/expenses/:expenseId
-Qué hace: detalle completo de gasto con payers y splits.
-Para qué sirve: auditoría y vista detallada.
+## Scripts
 
-PATCH /api/v1/expenses/:expenseId
-Qué hace: actualiza gasto (solo ADMIN), valida integridad y membresías, maneja reemplazo de comprobante.
-Para qué sirve: corrección de registros antes de cierre.
+- `pnpm dev`: levanta entorno de desarrollo.
+- `pnpm lint`: ejecuta ESLint.
+- `pnpm test:ci`: ejecuta tests con Vitest en modo CI.
+- `pnpm build`: typecheck y build de produccion.
+- `pnpm quality`: corre lint + tests + build.
+- `pnpm preview`: sirve el build generado localmente.
+- `pnpm doctor`: escaneo de salud React con react-doctor.
 
-DELETE /api/v1/expenses/:expenseId
-Qué hace: elimina gasto (solo ADMIN), incluyendo relaciones y archivo de comprobante.
-Para qué sirve: depuración de datos erróneos.
+## Flujo funcional recomendado
 
-PUT /api/v1/expenses/:expenseId/payers
-Qué hace: reemplaza pagadores del gasto (solo ADMIN), validando suma contra monto.
-Para qué sirve: corregir quién pagó y cuánto.
+1. Registro o inicio de sesion.
+2. Creacion y seleccion de hogar activo.
+3. Invitacion y gestion de miembros.
+4. Registro de gastos con payers y splits.
+5. Revision de dashboard y balances por usuario.
+6. Simulacion de cierre del periodo.
+7. Creacion de cierre y validacion de inmutabilidad de gastos cerrados.
 
-PUT /api/v1/expenses/:expenseId/splits
-Qué hace: reemplaza distribución del gasto (solo ADMIN), validando suma contra monto.
-Para qué sirve: corregir reparto de deuda entre miembros.
+## Calidad y CI
 
-Nota operativa de gastos
+El proyecto incorpora un flujo de calidad automatizado:
 
-Si un gasto pertenece a un cierre (closureId no nulo), no se puede modificar ni eliminar.
-Endpoints de cierres financieros
+- Lint estatico de codigo.
+- Tests de dominio y utilidades.
+- Build de produccion.
 
-POST /api/v1/closures/simulate
-Qué hace: simula cierre sin persistir, calcula balances y deudas del período abierto.
-Para qué sirve: previsualizar resultados antes de cerrar.
+Comando unificado:
 
-POST /api/v1/closures
-Qué hace: crea cierre real del período abierto (solo ADMIN), guarda balances y marca gastos con closureId.
-Para qué sirve: consolidación contable del período.
+```bash
+pnpm quality
+```
 
-GET /api/v1/households/:householdId/closures
-Qué hace: lista cierres de un hogar con paginación.
-Para qué sirve: historial de cierres.
+## Contribucion
 
-GET /api/v1/closures/:closureId
-Qué hace: devuelve metadata del cierre y balances finales.
-Para qué sirve: consulta principal de un cierre puntual.
+Para colaborar en el proyecto:
 
-GET /api/v1/closures/:closureId/balances
-Qué hace: lista balances finales (quién paga a quién y cuánto).
-Para qué sirve: ejecución de liquidación entre miembros.
+1. Crear una rama por feature o fix.
+2. Mantener la separacion por capas del contexto afectado.
+3. Ejecutar `pnpm quality` antes de abrir PR.
+4. Documentar impacto funcional y tecnico en la descripcion del PR.
 
-GET /api/v1/closures/:closureId/expenses
-Qué hace: lista gastos incluidos en ese cierre.
-Para qué sirve: trazabilidad y auditoría del cierre.
+## Licencia
 
-Endpoints de prueba interna
-
-GET /api/v1/tests
-Qué hace: endpoint de verificación básica protegido por JWT.
-Para qué sirve: smoke test de autenticación y conectividad.
-
-POST /api/v1/tests/upload
-Qué hace: sube archivo de prueba a Cloudinary.
-Para qué sirve: validar integración de carga de archivos.
-
-Seguridad y autorización (resumen)
-
-JWT requerido en la mayoría de módulos de negocio.
-Roles en hogar: ADMIN y GUEST.
-Operaciones sensibles (crear/editar/borrar gastos, invitar, cambios de rol) restringidas a ADMIN.
-Invitaciones usan tokens temporales en caché con expiración.
+Proyecto de uso privado.

@@ -7,7 +7,7 @@ import pretti from 'eslint-config-prettier'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist']),
+  globalIgnores(['dist', '.agents/**']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [
@@ -16,6 +16,15 @@ export default defineConfig([
       reactHooks.configs.flat.recommended,
       reactRefresh.configs.vite,
     ],
+    rules: {
+      'react-refresh/only-export-components': [
+        'error',
+        {
+          allowConstantExport: true,
+          allowExportNames: ['buttonVariants', 'redirectAuthenticatedUser', 'protectRoute', 'useToast', 'toast'],
+        },
+      ],
+    },
     languageOptions: {
       globals: globals.browser,
     },

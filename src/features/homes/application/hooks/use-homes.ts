@@ -111,7 +111,7 @@ export const useRemoveHomeMember = (homeId: string | null) => {
     mutationFn: (memberId: string) => apiHomesRepository.removeHomeMember(homeId ?? '', memberId),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: HOME_QUERY_KEYS.detail(homeId ?? 'none') })
-      await queryClient.invalidateQueries({ queryKey: HOME_QUERY_KEYS.calculation(homeId ?? 'none') })
+      await queryClient.invalidateQueries({ queryKey: ['homes', homeId ?? 'none', 'calculation'] })
     },
   })
 }

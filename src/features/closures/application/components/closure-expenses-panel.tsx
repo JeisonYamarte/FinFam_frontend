@@ -43,7 +43,7 @@ export const ClosureExpensesPanel = ({
       {expenses.map((expense) => (
         <article
           key={expense.id}
-          className="rounded-2xl border border-white/10 bg-background/35 px-4 py-4"
+          className="rounded-2xl border border-white/10 bg-background/35 p-4"
         >
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div className="min-w-0">

@@ -75,7 +75,7 @@ export const AppSidebar = ({
       <div
         className={cn(
           'border-b border-white/6',
-          isDesktopIconRail ? 'space-y-2 px-2 py-3' : 'flex items-center justify-between px-4 py-4',
+          isDesktopIconRail ? 'space-y-2 px-2 py-3' : 'flex items-center justify-between p-4',
         )}
       >
         <Link to="/homes" className={cn(isDesktopIconRail ? 'flex justify-center' : 'min-w-0 flex-1')}>
@@ -197,7 +197,7 @@ export const AppSidebar = ({
                   type="button"
                   disabled
                   className={cn(
-                    'flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-left text-sm text-muted-foreground/60',
+                    'flex w-full items-center gap-3 rounded-2xl p-3 text-left text-sm text-muted-foreground/60',
                     isDesktopCollapsed ? 'justify-center' : undefined,
                   )}
                 >
@@ -208,7 +208,7 @@ export const AppSidebar = ({
                 <Link key={item.label} to={item.to}>
                   <div
                     className={cn(
-                      'flex items-center gap-3 rounded-2xl px-3 py-3 text-sm transition',
+                      'flex items-center gap-3 rounded-2xl p-3 text-sm transition',
                       isDesktopCollapsed ? 'justify-center' : undefined,
                       isActive
                         ? 'bg-primary/12 text-primary ring-1 ring-primary/20'
@@ -231,7 +231,7 @@ export const AppSidebar = ({
             type="button"
             onClick={onLeaveHome}
             className={cn(
-              'flex w-full items-center gap-3 rounded-2xl px-3 py-3 text-sm text-muted-foreground transition hover:bg-white/4 hover:text-foreground',
+              'flex w-full items-center gap-3 rounded-2xl p-3 text-sm text-muted-foreground transition hover:bg-white/4 hover:text-foreground',
               isDesktopCollapsed ? 'justify-center' : undefined,
             )}
           >
