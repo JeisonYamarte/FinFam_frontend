@@ -34,9 +34,9 @@ export const LoginPage = () => {
 
   const mutation = useMutation({
     mutationFn: login,
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: CURRENT_USER_QUERY_KEY })
-      await navigate({ to: '/dashboard' })
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: CURRENT_USER_QUERY_KEY })
+      void navigate({ to: '/dashboard' })
     },
   })
 
