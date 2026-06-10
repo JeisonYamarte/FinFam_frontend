@@ -3,17 +3,19 @@ import {
   createRootRoute,
   createRoute,
   createRouter,
-  redirect,
 } from '@tanstack/react-router'
 import { z } from 'zod'
 
 import { AuthLayout } from '@/shared/application/components/layout/auth-layout'
+import { LandingLayout } from '@/shared/application/components/layout/landing-layout'
+import LandingPage from '@/features/auth/application/pages/landing-page'
 import {
   ProtectedRoute,
   protectRoute,
   redirectAuthenticatedUser,
 } from '@/shared/application/components/routes/protected-route'
 import { tokenStore } from '@/shared/infrastructure/http/client'
+import { waitForAuthReady } from '@/shared/infrastructure/http/auth-init'
 import { ForgotPasswordPage } from '@/features/auth/application/pages/forgot-password-page'
 import { LoginPage } from '@/features/auth/application/pages/login-page'
 import { RegisterPage } from '@/features/auth/application/pages/register-page'
@@ -33,22 +35,23 @@ const rootRoute = createRootRoute({
   notFoundComponent: NotFoundPage,
 })
 
-const publicGuard = (): void => {
+const publicGuard = async (): Promise<void> => {
+  await waitForAuthReady()
   if (tokenStore.get()) {
     redirectAuthenticatedUser()
   }
 }
 
-const indexRoute = createRoute({
+const landingLayoutRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/',
-  beforeLoad: () => {
-    if (tokenStore.get()) {
-      redirectAuthenticatedUser()
-    }
+  id: 'landing',
+  component: LandingLayout,
+})
 
-    throw redirect({ to: '/login' })
-  },
+const indexRoute = createRoute({
+  getParentRoute: () => landingLayoutRoute,
+  path: '/',
+  component: LandingPage,
 })
 
 const publicRoute = createRoute({
@@ -185,7 +188,7 @@ const homeSettingsRoute = createRoute({
 })
 
 const routeTree = rootRoute.addChildren([
-  indexRoute,
+  landingLayoutRoute.addChildren([indexRoute]),
   publicRoute.addChildren([
     loginRoute,
     registerRoute,

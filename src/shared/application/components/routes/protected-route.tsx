@@ -19,6 +19,7 @@ import { useCreateHome, useHomes } from '@/features/homes/application/hooks/use-
 import { AppLayout, type AppLayoutNavigationItem } from '@/shared/application/components/layout/app-layout'
 import { toast } from '@/shared/application/components/feedback/toast-provider'
 import { tokenStore } from '@/shared/infrastructure/http/client'
+import { waitForAuthReady } from '@/shared/infrastructure/http/auth-init'
 import {
   clearActiveHomeSession,
   setActiveHomeSession,
@@ -49,7 +50,9 @@ export const redirectAuthenticatedUser = (): never => {
 }
 
 export const protectRoute = ({ requiresHome = false, requiresAdmin = false }: GuardOptions = {}) => {
-  return (): void => {
+  return async (): Promise<void> => {
+    await waitForAuthReady()
+
     if (!tokenStore.get()) {
       throw redirect({ to: '/login' })
     }
